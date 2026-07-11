@@ -1,0 +1,58 @@
+/* ShadowShift — base layout & full-screen canvas setup */
+
+:root {
+  --bg-deep: #05060a;
+  --bg-glow: #12162a;
+  --accent: #8b5cf6;
+  --accent-soft: rgba(139, 92, 246, 0.35);
+  --text-light: #e8e6f5;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text-light);
+}
+
+#game-canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 50% 40%, var(--bg-glow), var(--bg-deep) 70%);
+  touch-action: none;
+}
+
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+}
+
+#hud-title {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 3vw, 1.8rem);
+  letter-spacing: 0.35em;
+  color: var(--text-light);
+  text-shadow: 0 0 18px var(--accent-soft), 0 0 4px var(--accent-soft);
+  opacity: 0.85;
+}

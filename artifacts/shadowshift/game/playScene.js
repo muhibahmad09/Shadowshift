@@ -6,26 +6,44 @@ import { lerpColor } from '../engine/colorUtils.js';
 import { Player } from './player.js';
 import { WorldManager } from './worldManager.js';
 import { ObstacleSpawner } from './obstacleSpawner.js';
+import { CoinSpawner } from './coinSpawner.js';
+import { ParticleSystem } from './particles.js';
 import { Difficulty } from './difficulty.js';
 import { rectsOverlap } from './collision.js';
+import { Sfx } from './audio.js';
 
 const GROUND_MARGIN_RATIO = 0.22; // ground line sits this far up from the bottom
 const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
+const COIN_SCORE_VALUE = 10;
+const COIN_PARTICLE_COLOR = '#fde68a';
+const COIN_PARTICLE_COUNT = 12;
 
 export class PlayScene extends Scene {
-  constructor({ worldSwitchButton, worldLabelEl } = {}) {
+  constructor({
+    worldSwitchButton,
+    worldLabelEl,
+    coinsLabelEl,
+    scoreLabelEl,
+  } = {}) {
     super();
     this.player = new Player();
     this.world = new WorldManager('light');
     this.spawner = new ObstacleSpawner();
+    this.coinSpawner = new CoinSpawner();
+    this.particles = new ParticleSystem();
     this.difficulty = new Difficulty();
+    this.sfx = new Sfx();
     this.worldSwitchButton = worldSwitchButton ?? null;
     this.worldLabelEl = worldLabelEl ?? null;
+    this.coinsLabelEl = coinsLabelEl ?? null;
+    this.scoreLabelEl = scoreLabelEl ?? null;
 
     this.width = 0;
     this.height = 0;
     this.groundY = 0;
     this.isGameOver = false;
+    this.coinsCollected = 0;
+    this.score = 0;
   }
 
   onEnter() {
@@ -74,6 +92,12 @@ export class PlayScene extends Scene {
       spawnX: this.width + SPAWN_MARGIN_PX,
       groundY: this.groundY,
     });
+    this.coinSpawner.update(deltaSeconds, {
+      speed: this.difficulty.speed,
+      spawnX: this.width + SPAWN_MARGIN_PX,
+      groundY: this.groundY,
+    });
+    this.particles.update(deltaSeconds);
     this.player.update(deltaSeconds);
 
     if (this.worldSwitchButton) {
@@ -83,7 +107,30 @@ export class PlayScene extends Scene {
       );
     }
 
+    // Coins are collectible in either world; check them before obstacles so
+    // a last-instant pickup still counts even if the run ends this frame.
+    this._checkCoinCollisions();
     this._checkCollisions();
+  }
+
+  _checkCoinCollisions() {
+    const playerBounds = this.player.getBounds();
+
+    this.coinSpawner.forEachActive((coin) => {
+      if (!rectsOverlap(playerBounds, coin.getBounds())) return;
+
+      coin.active = false;
+      this.coinsCollected += 1;
+      this.score += COIN_SCORE_VALUE;
+      this.particles.spawnBurst(
+        coin.x,
+        coin.y,
+        COIN_PARTICLE_COLOR,
+        COIN_PARTICLE_COUNT,
+      );
+      this.sfx.playCoin();
+      this._syncScoreChrome();
+    });
   }
 
   _checkCollisions() {
@@ -111,20 +158,29 @@ export class PlayScene extends Scene {
     this.world = new WorldManager('light');
     this.difficulty.reset();
     this.spawner.reset();
+    this.coinSpawner.reset();
+    this.particles.reset();
+    this.coinsCollected = 0;
+    this.score = 0;
     this.player.x = Math.max(120, this.width * 0.25);
     this.player.reset(this.groundY);
     this._syncWorldChrome();
+    this._syncScoreChrome();
   }
 
   render(ctx) {
     this._drawBackground(ctx);
     this._drawGround(ctx);
 
+    this.coinSpawner.forEachActive((coin) => coin.draw(ctx));
+
     this.spawner.forEachActive((obstacle) =>
       obstacle.draw(ctx, this.world.current.id),
     );
 
     this.player.draw(ctx, this.world.glowPulse, this.world.current.accent);
+
+    this.particles.draw(ctx);
 
     this._drawFlash(ctx);
 
@@ -221,6 +277,16 @@ export class PlayScene extends Scene {
 
     if (this.worldLabelEl) {
       this.worldLabelEl.textContent = this.world.current.label;
+    }
+  }
+
+  /** Keep the HUD coin counter and score in sync. */
+  _syncScoreChrome() {
+    if (this.coinsLabelEl) {
+      this.coinsLabelEl.textContent = `COINS: ${this.coinsCollected}`;
+    }
+    if (this.scoreLabelEl) {
+      this.scoreLabelEl.textContent = `SCORE: ${this.score}`;
     }
   }
 }

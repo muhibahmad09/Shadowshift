@@ -72,6 +72,26 @@ body {
   opacity: 0.6;
 }
 
+#hud-stats {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.35rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  letter-spacing: 0.06em;
+}
+
+#hud-coins {
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+}
+
+#hud-score {
+  color: currentColor;
+  opacity: 0.85;
+}
+
 body.world-light {
   color: #241a3d;
 }

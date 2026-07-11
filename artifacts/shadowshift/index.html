@@ -22,11 +22,28 @@
     <canvas id="game-canvas"></canvas>
 
     <div id="hud">
-      <span id="hud-title">SHADOWSHIFT</span>
-      <span id="hud-world">LIGHT WORLD</span>
+      <div id="hud-brand">
+        <span id="hud-title">SHADOWSHIFT</span>
+        <span id="hud-world">LIGHT WORLD</span>
+      </div>
+
       <div id="hud-stats">
-        <span id="hud-coins">COINS: 0</span>
-        <span id="hud-score">SCORE: 0</span>
+        <div class="stat-card stat-score">
+          <span class="stat-label">Score</span>
+          <span class="stat-value" id="hud-score">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Distance</span>
+          <span class="stat-value" id="hud-distance">0 m</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Coins</span>
+          <span class="stat-value" id="hud-coins">0</span>
+        </div>
+        <div class="stat-card stat-best" id="hud-best-card">
+          <span class="stat-label">Best</span>
+          <span class="stat-value" id="hud-best">0</span>
+        </div>
       </div>
     </div>
 

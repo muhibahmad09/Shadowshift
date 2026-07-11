@@ -1,5 +1,6 @@
 // PlayScene — hosts the ground, the player, the Light/Shadow world switch,
-// and endless procedural obstacles. No further scene switching yet.
+// endless procedural obstacles, and coin/score/distance tracking. No
+// further scene switching yet.
 
 import { Scene } from '../engine/scene.js';
 import { lerpColor } from '../engine/colorUtils.js';
@@ -11,6 +12,7 @@ import { ParticleSystem } from './particles.js';
 import { Difficulty } from './difficulty.js';
 import { rectsOverlap } from './collision.js';
 import { Sfx } from './audio.js';
+import { ScoreManager } from './scoreManager.js';
 
 const GROUND_MARGIN_RATIO = 0.22; // ground line sits this far up from the bottom
 const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
@@ -19,12 +21,7 @@ const COIN_PARTICLE_COLOR = '#fde68a';
 const COIN_PARTICLE_COUNT = 12;
 
 export class PlayScene extends Scene {
-  constructor({
-    worldSwitchButton,
-    worldLabelEl,
-    coinsLabelEl,
-    scoreLabelEl,
-  } = {}) {
+  constructor({ worldSwitchButton, worldLabelEl, hud } = {}) {
     super();
     this.player = new Player();
     this.world = new WorldManager('light');
@@ -33,17 +30,15 @@ export class PlayScene extends Scene {
     this.particles = new ParticleSystem();
     this.difficulty = new Difficulty();
     this.sfx = new Sfx();
+    this.scoreManager = new ScoreManager();
     this.worldSwitchButton = worldSwitchButton ?? null;
     this.worldLabelEl = worldLabelEl ?? null;
-    this.coinsLabelEl = coinsLabelEl ?? null;
-    this.scoreLabelEl = scoreLabelEl ?? null;
+    this.hud = hud ?? null;
 
     this.width = 0;
     this.height = 0;
     this.groundY = 0;
     this.isGameOver = false;
-    this.coinsCollected = 0;
-    this.score = 0;
   }
 
   onEnter() {
@@ -87,6 +82,12 @@ export class PlayScene extends Scene {
 
     this.world.update(deltaSeconds);
     this.difficulty.update(deltaSeconds);
+
+    // Distance mirrors exactly what's scrolling past — same speed that
+    // drives obstacles and coins — so the HUD number always matches what
+    // the player sees.
+    this.scoreManager.addDistance(this.difficulty.speed * deltaSeconds);
+
     this.spawner.update(deltaSeconds, {
       speed: this.difficulty.speed,
       spawnX: this.width + SPAWN_MARGIN_PX,
@@ -111,6 +112,10 @@ export class PlayScene extends Scene {
     // a last-instant pickup still counts even if the run ends this frame.
     this._checkCoinCollisions();
     this._checkCollisions();
+
+    if (this.hud) {
+      this.hud.sync(this.scoreManager);
+    }
   }
 
   _checkCoinCollisions() {
@@ -120,8 +125,7 @@ export class PlayScene extends Scene {
       if (!rectsOverlap(playerBounds, coin.getBounds())) return;
 
       coin.active = false;
-      this.coinsCollected += 1;
-      this.score += COIN_SCORE_VALUE;
+      this.scoreManager.addCoin(COIN_SCORE_VALUE);
       this.particles.spawnBurst(
         coin.x,
         coin.y,
@@ -129,7 +133,6 @@ export class PlayScene extends Scene {
         COIN_PARTICLE_COUNT,
       );
       this.sfx.playCoin();
-      this._syncScoreChrome();
     });
   }
 
@@ -160,12 +163,13 @@ export class PlayScene extends Scene {
     this.spawner.reset();
     this.coinSpawner.reset();
     this.particles.reset();
-    this.coinsCollected = 0;
-    this.score = 0;
+    this.scoreManager.reset();
     this.player.x = Math.max(120, this.width * 0.25);
     this.player.reset(this.groundY);
     this._syncWorldChrome();
-    this._syncScoreChrome();
+    if (this.hud) {
+      this.hud.sync(this.scoreManager);
+    }
   }
 
   render(ctx) {
@@ -242,25 +246,53 @@ export class PlayScene extends Scene {
   }
 
   _drawGameOver(ctx) {
+    const { scoreManager } = this;
+
     ctx.save();
     ctx.fillStyle = 'rgba(5, 6, 10, 0.72)';
     ctx.fillRect(0, 0, this.width, this.height);
 
     const titleSize = Math.min(64, Math.max(32, this.width * 0.05));
-    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `700 ${titleSize}px Orbitron, Inter, system-ui, sans-serif`;
-    ctx.fillText('GAME OVER', this.width / 2, this.height / 2 - titleSize * 0.4);
 
-    const subSize = Math.max(14, titleSize * 0.32);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `700 ${titleSize}px Orbitron, Inter, system-ui, sans-serif`;
+    ctx.fillText(
+      'GAME OVER',
+      this.width / 2,
+      this.height / 2 - titleSize * 0.9,
+    );
+
+    const statsSize = Math.max(15, titleSize * 0.34);
+    ctx.font = `600 ${statsSize}px Inter, system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.fillText(
+      `Score ${Math.floor(scoreManager.score)}   ·   Distance ${Math.floor(scoreManager.distanceMeters)} m   ·   Coins ${scoreManager.coins}`,
+      this.width / 2,
+      this.height / 2,
+    );
+
+    const bestSize = Math.max(14, titleSize * 0.3);
+    ctx.font = `700 ${bestSize}px Orbitron, Inter, system-ui, sans-serif`;
+    ctx.fillStyle = scoreManager.isNewHighScore ? '#fbbf24' : 'rgba(255, 255, 255, 0.65)';
+    ctx.fillText(
+      scoreManager.isNewHighScore
+        ? 'NEW HIGH SCORE!'
+        : `BEST ${Math.floor(scoreManager.highScore)}`,
+      this.width / 2,
+      this.height / 2 + statsSize * 1.6,
+    );
+
+    const subSize = Math.max(13, titleSize * 0.26);
     ctx.font = `500 ${subSize}px Inter, system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.fillText(
       'Press Space or tap to restart',
       this.width / 2,
-      this.height / 2 + titleSize * 0.55,
+      this.height / 2 + statsSize * 3.1,
     );
+
     ctx.restore();
   }
 
@@ -277,16 +309,6 @@ export class PlayScene extends Scene {
 
     if (this.worldLabelEl) {
       this.worldLabelEl.textContent = this.world.current.label;
-    }
-  }
-
-  /** Keep the HUD coin counter and score in sync. */
-  _syncScoreChrome() {
-    if (this.coinsLabelEl) {
-      this.coinsLabelEl.textContent = `COINS: ${this.coinsCollected}`;
-    }
-    if (this.scoreLabelEl) {
-      this.scoreLabelEl.textContent = `SCORE: ${this.score}`;
     }
   }
 }

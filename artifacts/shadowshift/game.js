@@ -1,25 +1,28 @@
 // ShadowShift — engine bootstrap.
 //
-// Wires the engine, the Light/Shadow world switch button, HUD elements,
-// and the play scene together.
+// Wires the engine, the Light/Shadow world switch button, the premium HUD
+// (score/distance/coins/high score), and the play scene together.
 
 import { Engine } from './engine/engine.js';
 import { PlayScene } from './game/playScene.js';
 import { WorldSwitchButton } from './game/worldSwitchButton.js';
+import { Hud } from './game/hud.js';
 
 const canvas = document.getElementById('game-canvas');
 const switchButtonEl = document.getElementById('switch-world-btn');
 const hudWorldEl = document.getElementById('hud-world');
-const hudCoinsEl = document.getElementById('hud-coins');
-const hudScoreEl = document.getElementById('hud-score');
+
+const hud = new Hud({
+  scoreEl: document.getElementById('hud-score'),
+  distanceEl: document.getElementById('hud-distance'),
+  coinsEl: document.getElementById('hud-coins'),
+  bestEl: document.getElementById('hud-best'),
+  bestCardEl: document.getElementById('hud-best-card'),
+});
 
 const engine = new Engine(canvas);
 
-const playScene = new PlayScene({
-  worldLabelEl: hudWorldEl,
-  coinsLabelEl: hudCoinsEl,
-  scoreLabelEl: hudScoreEl,
-});
+const playScene = new PlayScene({ worldLabelEl: hudWorldEl, hud });
 const switchButton = new WorldSwitchButton(switchButtonEl, () =>
   playScene.requestWorldSwitch(),
 );

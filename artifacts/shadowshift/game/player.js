@@ -50,6 +50,16 @@ export class Player {
     }
   }
 
+  /** World-space AABB for collision checks: `x` is left edge, not center. */
+  getBounds() {
+    return {
+      x: this.x - this.width / 2,
+      y: this.y,
+      width: this.width,
+      height: this.height,
+    };
+  }
+
   /** Request a jump. No-op if airborne — this is what prevents double jumps. */
   jump() {
     if (!this.isGrounded) return;

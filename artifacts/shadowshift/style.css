@@ -22,15 +22,19 @@ body {
   background: var(--bg-deep);
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--text-light);
+  transition: color 0.4s ease;
 }
 
+/* The canvas paints its own per-world background every frame; this is
+   just a fallback so there's no flash-of-wrong-color before the first
+   frame renders. */
 #game-canvas {
   position: fixed;
   inset: 0;
   display: block;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at 50% 40%, var(--bg-glow), var(--bg-deep) 70%);
+  background: var(--bg-deep);
   touch-action: none;
 }
 
@@ -40,7 +44,9 @@ body {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
   padding: 1.5rem 1rem;
   pointer-events: none;
   user-select: none;
@@ -52,7 +58,95 @@ body {
   font-weight: 700;
   font-size: clamp(1.1rem, 3vw, 1.8rem);
   letter-spacing: 0.35em;
-  color: var(--text-light);
+  color: currentColor;
   text-shadow: 0 0 18px var(--accent-soft), 0 0 4px var(--accent-soft);
   opacity: 0.85;
+}
+
+#hud-world {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.65rem, 1.6vw, 0.8rem);
+  letter-spacing: 0.3em;
+  color: currentColor;
+  opacity: 0.6;
+}
+
+body.world-light {
+  color: #241a3d;
+}
+
+body.world-shadow {
+  color: var(--text-light);
+}
+
+/* Switch-world button — always visible, doubles as the cooldown indicator
+   via the conic-gradient ring that fills back up as --cooldown-percent
+   grows from the game loop. */
+#switch-world-btn {
+  --world-accent: #8b5cf6;
+  --cooldown-percent: 100%;
+
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(10, 8, 20, 0.55);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 0;
+  transition:
+    transform 0.15s ease,
+    opacity 0.3s ease;
+}
+
+#switch-world-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+#switch-world-btn:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
+#switch-world-btn:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.switch-world-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 3px;
+  background: conic-gradient(
+    var(--world-accent) var(--cooldown-percent),
+    rgba(255, 255, 255, 0.12) var(--cooldown-percent)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: background 0.2s linear;
+}
+
+.switch-world-label {
+  position: relative;
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  color: var(--text-light);
+  text-align: center;
 }

@@ -78,17 +78,48 @@ export class Player {
     }
   }
 
-  draw(ctx) {
+  /**
+   * @param {number} switchGlow 0-1 intensity of the world-switch halo.
+   * @param {string} glowColor CSS color for the halo while switching.
+   */
+  draw(ctx, switchGlow = 0, glowColor = '#ffffff') {
     const centerX = this.x;
     const topY = this.y;
     const bodyBottomY = topY + this.height - LEG_LENGTH;
+    const bodyCenterY = topY + (bodyBottomY - topY) / 2;
 
     ctx.save();
     ctx.translate(centerX, 0);
 
+    if (switchGlow > 0) {
+      this._drawSwitchHalo(ctx, bodyCenterY, switchGlow, glowColor);
+    }
+
     this._drawLegs(ctx, bodyBottomY);
     this._drawBody(ctx, topY, bodyBottomY);
 
+    ctx.restore();
+  }
+
+  _drawSwitchHalo(ctx, centerY, intensity, color) {
+    const radius = this.width * 1.9;
+    const gradient = ctx.createRadialGradient(
+      0,
+      centerY,
+      0,
+      0,
+      centerY,
+      radius,
+    );
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.save();
+    ctx.globalAlpha = intensity * 0.85;
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, centerY, radius, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 

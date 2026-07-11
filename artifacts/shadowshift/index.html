@@ -52,6 +52,33 @@
       <span class="switch-world-label">SWITCH<br />WORLD</span>
     </button>
 
+    <div id="main-menu">
+      <div class="menu-logo">
+        <span class="menu-logo-text">SHADOWSHIFT</span>
+        <span class="menu-tagline">Slip between light and shadow</span>
+      </div>
+
+      <div class="menu-highscore">
+        <span class="menu-highscore-label">High Score</span>
+        <span class="menu-highscore-value" id="menu-highscore">0</span>
+      </div>
+
+      <nav class="menu-actions">
+        <button type="button" class="menu-btn menu-btn-primary" id="menu-play-btn">Play</button>
+        <button type="button" class="menu-btn" id="menu-multiplayer-btn">Multiplayer</button>
+        <button type="button" class="menu-btn" id="menu-settings-btn">Settings</button>
+        <button type="button" class="menu-btn menu-btn-danger" id="menu-exit-btn">Exit</button>
+      </nav>
+    </div>
+
+    <div id="modal-overlay">
+      <div class="modal-panel">
+        <h2 class="modal-title" id="modal-title"></h2>
+        <p class="modal-body" id="modal-body"></p>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>
+
     <script type="module" src="/game.js"></script>
   </body>
 </html>

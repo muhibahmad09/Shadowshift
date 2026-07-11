@@ -38,12 +38,26 @@ body {
   touch-action: none;
 }
 
+/* HUD and the switch-world button only make sense during gameplay; the
+   main menu owns the screen otherwise. */
+#hud,
+#switch-world-btn {
+  display: none;
+}
+
+body.scene-play #hud {
+  display: flex;
+}
+
+body.scene-play #switch-world-btn {
+  display: flex;
+}
+
 #hud {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.9rem;
@@ -201,7 +215,6 @@ body.world-shadow {
   background: rgba(10, 8, 20, 0.55);
   backdrop-filter: blur(6px);
   cursor: pointer;
-  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 20;
@@ -253,4 +266,329 @@ body.world-shadow {
   line-height: 1.3;
   color: var(--text-light);
   text-align: center;
+}
+
+/* ---------------------------------------------------------------------
+   Main menu — animated logo, high score, and premium glowing buttons.
+   The canvas (MenuScene) paints a drifting starfield behind this overlay;
+   this DOM layer is shown only while body has the "scene-menu" class.
+   --------------------------------------------------------------------- */
+
+#main-menu {
+  display: none;
+}
+
+body.scene-menu #main-menu {
+  display: flex;
+}
+
+#main-menu {
+  position: fixed;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.25rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-light);
+  z-index: 30;
+}
+
+.menu-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.menu-logo-text {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 9vw, 4.75rem);
+  letter-spacing: 0.14em;
+  background: linear-gradient(
+    120deg,
+    #c4b5fd,
+    #8b5cf6,
+    #fbbf24,
+    #8b5cf6,
+    #c4b5fd
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    menu-logo-shimmer 6s ease-in-out infinite,
+    menu-logo-float 4s ease-in-out infinite,
+    menu-logo-glow 3s ease-in-out infinite alternate;
+}
+
+.menu-tagline {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  animation: menu-btn-in 0.6s ease both;
+  animation-delay: 0.1s;
+}
+
+@keyframes menu-logo-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes menu-logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes menu-logo-glow {
+  from {
+    filter: drop-shadow(0 0 14px rgba(139, 92, 246, 0.4));
+  }
+  to {
+    filter: drop-shadow(0 0 32px rgba(196, 181, 253, 0.85));
+  }
+}
+
+.menu-highscore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 1.6rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: linear-gradient(
+    180deg,
+    rgba(251, 191, 36, 0.12),
+    rgba(251, 191, 36, 0.02)
+  );
+  box-shadow: 0 0 22px rgba(251, 191, 36, 0.18);
+  animation: menu-btn-in 0.5s ease both;
+  animation-delay: 0.15s;
+}
+
+.menu-highscore-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.menu-highscore-value {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #fbbf24;
+  text-shadow: 0 0 16px rgba(251, 191, 36, 0.6);
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.menu-btn {
+  min-width: 220px;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+  backdrop-filter: blur(10px);
+  color: var(--text-light);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(5, 6, 10, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  animation: menu-btn-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.menu-actions .menu-btn:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.menu-actions .menu-btn:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.menu-actions .menu-btn:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.menu-actions .menu-btn:nth-child(4) {
+  animation-delay: 0.5s;
+}
+
+@keyframes menu-btn-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-btn:hover,
+.menu-btn:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(196, 181, 253, 0.6);
+  box-shadow:
+    0 12px 30px rgba(139, 92, 246, 0.35),
+    0 0 20px rgba(139, 92, 246, 0.35);
+  outline: none;
+}
+
+.menu-btn:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.menu-btn-primary {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  border-color: rgba(196, 181, 253, 0.6);
+  box-shadow: 0 10px 26px rgba(139, 92, 246, 0.5);
+}
+
+.menu-btn-primary:hover,
+.menu-btn-primary:focus-visible {
+  box-shadow:
+    0 14px 34px rgba(139, 92, 246, 0.65),
+    0 0 26px rgba(196, 181, 253, 0.6);
+}
+
+.menu-btn-danger:hover,
+.menu-btn-danger:focus-visible {
+  border-color: rgba(248, 113, 113, 0.6);
+  box-shadow:
+    0 12px 30px rgba(248, 113, 113, 0.3),
+    0 0 20px rgba(248, 113, 113, 0.3);
+}
+
+/* ---------------------------------------------------------------------
+   Modal — used by Multiplayer (coming soon), Settings (sound toggle),
+   and the Exit fallback message.
+   --------------------------------------------------------------------- */
+
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.65);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 60;
+}
+
+#modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-panel {
+  width: min(360px, 90vw);
+  padding: 1.75rem;
+  border-radius: 1.1rem;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 16, 34, 0.92),
+    rgba(10, 8, 18, 0.94)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 20px 60px rgba(5, 6, 10, 0.6),
+    0 0 40px rgba(139, 92, 246, 0.25);
+  color: var(--text-light);
+  text-align: center;
+  transform: translateY(12px) scale(0.96);
+  transition: transform 0.25s ease;
+}
+
+#modal-overlay.is-open .modal-panel {
+  transform: translateY(0) scale(1);
+}
+
+.modal-title {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.modal-body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.85;
+  margin-bottom: 1.4rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modal-btn {
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-light);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-btn:hover,
+.modal-btn:focus-visible {
+  border-color: rgba(196, 181, 253, 0.6);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.35);
+  outline: none;
+}
+
+.modal-btn-primary {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  border-color: rgba(196, 181, 253, 0.6);
 }

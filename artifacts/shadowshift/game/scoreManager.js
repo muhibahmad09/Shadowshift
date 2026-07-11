@@ -30,6 +30,14 @@ function saveHighScore(value) {
   }
 }
 
+/**
+ * Read the persisted high score without needing a ScoreManager instance —
+ * used by the main menu to display it before any run has started.
+ */
+export function getPersistedHighScore() {
+  return loadHighScore();
+}
+
 export class ScoreManager {
   constructor() {
     this.coins = 0;

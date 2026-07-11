@@ -21,7 +21,7 @@ const COIN_PARTICLE_COLOR = '#fde68a';
 const COIN_PARTICLE_COUNT = 12;
 
 export class PlayScene extends Scene {
-  constructor({ worldSwitchButton, worldLabelEl, hud } = {}) {
+  constructor({ worldSwitchButton, worldLabelEl, hud, sfx } = {}) {
     super();
     this.player = new Player();
     this.world = new WorldManager('light');
@@ -29,7 +29,7 @@ export class PlayScene extends Scene {
     this.coinSpawner = new CoinSpawner();
     this.particles = new ParticleSystem();
     this.difficulty = new Difficulty();
-    this.sfx = new Sfx();
+    this.sfx = sfx ?? new Sfx();
     this.scoreManager = new ScoreManager();
     this.worldSwitchButton = worldSwitchButton ?? null;
     this.worldLabelEl = worldLabelEl ?? null;
@@ -42,7 +42,13 @@ export class PlayScene extends Scene {
   }
 
   onEnter() {
+    document.body.classList.add('scene-play');
+    document.body.classList.remove('scene-menu');
     this._startRun();
+  }
+
+  onExit() {
+    document.body.classList.remove('scene-play');
   }
 
   onResize(width, height) {
@@ -64,6 +70,11 @@ export class PlayScene extends Scene {
 
   update(deltaSeconds) {
     const { input } = this.engine;
+
+    if (input.wasKeyPressed('Escape')) {
+      this.engine.scenes.switchTo('menu');
+      return;
+    }
 
     if (this.isGameOver) {
       if (input.wasKeyPressed('Space') || input.wasPointerPressed()) {
@@ -288,7 +299,7 @@ export class PlayScene extends Scene {
     ctx.font = `500 ${subSize}px Inter, system-ui, sans-serif`;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.fillText(
-      'Press Space or tap to restart',
+      'Space or tap to restart   ·   Esc for menu',
       this.width / 2,
       this.height / 2 + statsSize * 3.1,
     );

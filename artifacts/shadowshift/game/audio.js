@@ -6,9 +6,38 @@
 // AudioBuffer) whenever real audio assets are available — the call site
 // (`sfx.playCoin()`) doesn't need to change.
 
+const MUTED_STORAGE_KEY = 'shadowshift:muted';
+
+function loadMuted() {
+  try {
+    return window.localStorage.getItem(MUTED_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function saveMuted(muted) {
+  try {
+    window.localStorage.setItem(MUTED_STORAGE_KEY, muted ? '1' : '0');
+  } catch {
+    // Ignore — mute preference just won't persist across sessions.
+  }
+}
+
 export class Sfx {
   constructor() {
     this._ctx = null;
+    this.muted = loadMuted();
+  }
+
+  setMuted(muted) {
+    this.muted = muted;
+    saveMuted(muted);
+  }
+
+  toggleMute() {
+    this.setMuted(!this.muted);
+    return this.muted;
   }
 
   _ensureContext() {
@@ -26,6 +55,8 @@ export class Sfx {
 
   /** Placeholder coin-pickup sound — a short synthesized two-tone blip. */
   playCoin() {
+    if (this.muted) return;
+
     const ctx = this._ensureContext();
     if (!ctx) return;
 

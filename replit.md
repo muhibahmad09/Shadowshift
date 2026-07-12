@@ -1,15 +1,17 @@
-# [Project name]
+# ShadowShift
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A neon-styled arcade game ("slip between light and shadow") with a Vite-based game client, an Express API server, and Postgres/Drizzle for persistence.
 
 ## Run & Operate
 
+- The game, API server, and mockup/canvas preview all run as Replit workflows and start automatically — no manual run command needed.
+- `pnpm --filter @workspace/shadowshift run dev` — run the game client directly if needed
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (already configured)
 
 ## Stack
 
@@ -38,7 +40,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After importing/cloning, run `pnpm install` at the repo root before starting workflows — `node_modules` isn't checked in, so `vite`/`esbuild` etc. are missing until installed.
 
 ## Pointers
 

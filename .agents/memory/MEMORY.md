@@ -1,0 +1,1 @@
+- [Canvas2D fake bloom](canvas2d-fake-bloom.md) — additive ('lighter') composite blows out to solid white fast; keep source-layer alpha low (~0.3-0.45) and inset glow shapes.

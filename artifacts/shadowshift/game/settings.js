@@ -12,14 +12,56 @@ export const QUALITY_LEVELS = ['low', 'medium', 'high'];
 /**
  * Concrete effects of each quality tier:
  *  - maxDpr: caps the canvas backing-store resolution (biggest perf lever).
- *  - starCount: menu starfield density.
- *  - particleCount: coin-pickup particle burst size.
+ *  - starCount: starfield density (menu and in-run parallax sky).
+ *  - particleCount: coin-pickup / game-over particle burst size.
  *  - glowBlur: shadowBlur amount used for coin/obstacle/player glows (0 = off).
+ *  - parallaxLayers: number of scrolling background silhouette layers (0-3).
+ *  - ambientParticleCount: floating embers/dust motes drifting in the run background.
+ *  - fogEnabled: soft drifting fog blobs near the ground.
+ *  - bloomEnabled: cheap offscreen-blur "bloom" pass over neon elements.
+ *  - bloomScale/bloomBlurPx: bloom offscreen resolution and blur radius.
+ *  - playerTrail: motion-trail afterimages behind the runner.
  */
 export const QUALITY_PRESETS = {
-  low: { maxDpr: 1, starCount: 24, particleCount: 5, glowBlur: 0 },
-  medium: { maxDpr: 1.5, starCount: 45, particleCount: 9, glowBlur: 10 },
-  high: { maxDpr: 2, starCount: 70, particleCount: 12, glowBlur: 18 },
+  low: {
+    maxDpr: 1,
+    starCount: 24,
+    particleCount: 5,
+    glowBlur: 0,
+    parallaxLayers: 1,
+    ambientParticleCount: 0,
+    fogEnabled: false,
+    bloomEnabled: false,
+    bloomScale: 0.28,
+    bloomBlurPx: 4,
+    playerTrail: false,
+  },
+  medium: {
+    maxDpr: 1.5,
+    starCount: 45,
+    particleCount: 9,
+    glowBlur: 10,
+    parallaxLayers: 2,
+    ambientParticleCount: 14,
+    fogEnabled: true,
+    bloomEnabled: true,
+    bloomScale: 0.32,
+    bloomBlurPx: 5,
+    playerTrail: true,
+  },
+  high: {
+    maxDpr: 2,
+    starCount: 70,
+    particleCount: 12,
+    glowBlur: 18,
+    parallaxLayers: 3,
+    ambientParticleCount: 26,
+    fogEnabled: true,
+    bloomEnabled: true,
+    bloomScale: 0.4,
+    bloomBlurPx: 7,
+    playerTrail: true,
+  },
 };
 
 const DEFAULTS = {

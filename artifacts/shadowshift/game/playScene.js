@@ -21,6 +21,7 @@ import { vibrate, HAPTICS } from './vibration.js';
 import { shopStore } from './shopStore.js';
 import { wallet } from './wallet.js';
 import { missionStats } from './missionStats.js';
+import { achievementStats } from './achievementStats.js';
 
 const GROUND_MARGIN_RATIO = 0.22; // ground line sits this far up from the bottom
 const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
@@ -175,6 +176,7 @@ export class PlayScene extends Scene {
       if (wasGrounded) {
         vibrate(HAPTICS.jump);
         this.sfx.playJump();
+        achievementStats.markJumped();
       }
     }
 
@@ -192,6 +194,18 @@ export class PlayScene extends Scene {
     // Missions that gate on distance (e.g. "Reach 1000m") can unlock
     // mid-run rather than waiting for game over.
     missionStats.reportDistance(this.scoreManager.distanceMeters);
+
+    // Achievement bookkeeping: "Survivor" watches this run's elapsed time,
+    // "Speed Runner" fires the instant the speed ramp hits its cap, and
+    // "Shadow Master" accumulates time spent in the Shadow world across
+    // every run.
+    achievementStats.reportRunSeconds(this.difficulty.elapsed);
+    if (this.difficulty.speed >= this.difficulty.maxSpeed) {
+      achievementStats.markMaxSpeedReached();
+    }
+    if (this.world.current.id === 'shadow') {
+      achievementStats.addShadowSeconds(deltaSeconds);
+    }
 
     this.spawner.update(deltaSeconds, {
       speed: this.difficulty.speed,

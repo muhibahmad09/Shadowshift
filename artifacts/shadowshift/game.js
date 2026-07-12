@@ -21,6 +21,9 @@ import { ShopPanel } from './game/shopPanel.js';
 import { applyTheme } from './game/worldManager.js';
 import { missionStore } from './game/missionStore.js';
 import { MissionsPanel } from './game/missionsPanel.js';
+import { achievementStore } from './game/achievementStore.js';
+import { AchievementsPanel } from './game/achievementsPanel.js';
+import { AchievementToast } from './game/achievementToast.js';
 
 // Apply the persisted Color Theme (or the Classic default) before the menu
 // and play scenes render their first frame.
@@ -212,6 +215,21 @@ function syncMissionsDot() {
 }
 syncMissionsDot();
 missionStore.onChange(syncMissionsDot);
+
+const achievementsPanel = new AchievementsPanel({
+  panelEl: document.getElementById('achievements-panel'),
+  closeBtnEl: document.getElementById('achievements-close-btn'),
+  gridEl: document.getElementById('achievements-grid'),
+});
+
+document.getElementById('menu-achievements-btn').addEventListener('click', () => {
+  achievementsPanel.show();
+});
+
+const achievementToast = new AchievementToast({
+  containerEl: document.getElementById('achievement-toast-container'),
+});
+achievementStore.onUnlock((achievement) => achievementToast.enqueue(achievement));
 const switchButton = new WorldSwitchButton(switchButtonEl, () =>
   playScene.requestWorldSwitch(),
 );

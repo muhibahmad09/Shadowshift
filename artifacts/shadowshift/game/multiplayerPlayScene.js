@@ -74,6 +74,18 @@ export class MultiplayerPlayScene extends PlayScene {
    * @param {{ playerId: string, slot: number, players: Array }} roomInfo
    */
   init(client, roomInfo) {
+    // Detach any listeners from a previous client (e.g. reconnect) before
+    // re-registering — prevents duplicate handlers if init() is called
+    // more than once without an intervening onExit().
+    if (this._mpClient) {
+      this._mpClient.off('remote_state', this._handleRemoteState);
+      this._mpClient.off('player_died', this._handlePlayerDied);
+      this._mpClient.off('player_joined', this._handlePlayerJoined);
+      this._mpClient.off('player_left', this._handlePlayerLeft);
+      this._mpClient.off('game_over', this._handleGameOver);
+      this._mpClient.off('disconnected', this._handleDisconnected);
+    }
+
     this._mpClient = client;
     this._myPlayerId = roomInfo.playerId;
     this._mySlot = roomInfo.slot;

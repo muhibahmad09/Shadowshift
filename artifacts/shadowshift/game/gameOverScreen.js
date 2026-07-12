@@ -63,11 +63,11 @@ export class GameOverScreen {
       this.highScoreBadgeEl.classList.toggle('is-visible', stats.isNewHighScore);
     }
 
-    // Restarting the entrance animation lets the card replay every run,
-    // not just the first time it's shown.
+    // Restarting the entrance animation every run: remove the class now,
+    // then re-add it in the next animation frame so the browser commits
+    // the removal before the addition — no layout reflow needed.
     this.panelEl.classList.remove('is-open');
-    void this.panelEl.offsetWidth;
-    this.panelEl.classList.add('is-open');
+    requestAnimationFrame(() => this.panelEl.classList.add('is-open'));
   }
 
   hide() {

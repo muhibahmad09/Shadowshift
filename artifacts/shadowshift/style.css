@@ -12,6 +12,9 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Suppress the translucent blue/grey tap flash on Android/iOS so
+     buttons and interactive elements look crisp on touch screens. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,

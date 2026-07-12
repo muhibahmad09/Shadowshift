@@ -70,6 +70,14 @@ export class PlayScene extends Scene {
     this.isPaused = false;
     this._groundScrollOffset = 0;
 
+    // Cached background gradient — only rebuilt when canvas size or world
+    // colors change, not every frame.
+    this._bgGradient = null;
+    this._bgGradientInner = null;
+    this._bgGradientOuter = null;
+    this._bgGradientW = 0;
+    this._bgGradientH = 0;
+
     // Re-seed background density immediately on a Graphics Quality change
     // instead of waiting for the next resize.
     settings.onChange(() => {
@@ -455,19 +463,36 @@ export class PlayScene extends Scene {
     const innerColor = lerpColor(previous.bgInner, current.bgInner, blend);
     const outerColor = lerpColor(previous.bgOuter, current.bgOuter, blend);
 
-    const radius = Math.max(this.width, this.height) * 0.75;
-    const gradient = ctx.createRadialGradient(
-      this.width / 2,
-      this.height * 0.35,
-      0,
-      this.width / 2,
-      this.height * 0.35,
-      radius,
-    );
-    gradient.addColorStop(0, innerColor);
-    gradient.addColorStop(1, outerColor);
+    // Only recreate the gradient when the canvas size or blended colors
+    // actually change — avoids a CanvasGradient allocation every frame.
+    // During a world-switch crossfade the colors update ~36 frames; in a
+    // stable world they are identical strings and the cache always hits.
+    if (
+      !this._bgGradient ||
+      innerColor !== this._bgGradientInner ||
+      outerColor !== this._bgGradientOuter ||
+      this.width !== this._bgGradientW ||
+      this.height !== this._bgGradientH
+    ) {
+      const radius = Math.max(this.width, this.height) * 0.75;
+      const grad = ctx.createRadialGradient(
+        this.width / 2,
+        this.height * 0.35,
+        0,
+        this.width / 2,
+        this.height * 0.35,
+        radius,
+      );
+      grad.addColorStop(0, innerColor);
+      grad.addColorStop(1, outerColor);
+      this._bgGradient = grad;
+      this._bgGradientInner = innerColor;
+      this._bgGradientOuter = outerColor;
+      this._bgGradientW = this.width;
+      this._bgGradientH = this.height;
+    }
 
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = this._bgGradient;
     ctx.fillRect(0, 0, this.width, this.height);
   }
 

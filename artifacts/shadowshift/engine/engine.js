@@ -76,6 +76,11 @@ export class Engine {
   /** Tear down all listeners. Call if the engine instance is discarded. */
   destroy() {
     this.stop();
+    // Clear any pending debounce so it doesn't fire after destruction.
+    if (this._resizeTimeout !== null) {
+      clearTimeout(this._resizeTimeout);
+      this._resizeTimeout = null;
+    }
     window.removeEventListener('resize', this._boundResize);
     window.removeEventListener('orientationchange', this._boundResize);
     document.removeEventListener('visibilitychange', this._boundVisibility);

@@ -48,7 +48,16 @@ export class AmbientParticles {
       mote.twinklePhase += deltaSeconds * 2.2;
 
       if (mote.x < -8 || mote.y < -8) {
-        Object.assign(mote, this._spawnMote());
+        // Inline respawn: mutate the existing object in place instead of
+        // Object.assign(mote, this._spawnMote()) — avoids a temporary
+        // allocation on the hot path when dozens of motes wrap each second.
+        mote.x = this.width + randomRange(0, 60);
+        mote.y = Math.random() * this.height;
+        mote.vx = -randomRange(6, 26);
+        mote.vy = -randomRange(4, 18);
+        mote.size = randomRange(1, 2.6);
+        mote.baseAlpha = randomRange(0.15, 0.55);
+        mote.twinklePhase = Math.random() * Math.PI * 2;
       }
     }
   }

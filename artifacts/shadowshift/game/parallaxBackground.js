@@ -217,18 +217,21 @@ export class ParallaxBackground {
     // to how "night-like" it is; blending it the same way colors blend
     // keeps the star fade in lockstep with the world-switch crossfade.
     const darkness = lerpDarkness(world.previous.id, world.current.id, world.colorBlend);
-    const shadowness = darkness;
+    if (darkness <= 0) return; // Fully in Light world — skip all draws.
 
+    // Single save/restore for the whole star batch: all stars share the
+    // same fillStyle and only differ in globalAlpha, so per-star
+    // save/restore pairs are unnecessary overhead.
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
     for (const star of this.stars) {
       const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
-      ctx.save();
-      ctx.globalAlpha = (0.2 + twinkle * 0.6) * shadowness;
-      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = (0.2 + twinkle * 0.6) * darkness;
       ctx.beginPath();
       ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
+    ctx.restore();
   }
 
   _drawSilhouettes(ctx, world, groundY) {

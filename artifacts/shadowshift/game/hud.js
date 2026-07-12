@@ -41,10 +41,11 @@ export class Hud {
     el.textContent = String(value);
 
     if (previous !== null && value !== previous) {
-      // Restart the CSS pulse animation even if it's already mid-flight.
+      // Restart the CSS pulse animation without forcing a layout reflow:
+      // remove the class now, then re-add it in the next rAF after the
+      // browser has had a chance to commit the removal to the style tree.
       el.classList.remove('stat-pulse');
-      void el.offsetWidth;
-      el.classList.add('stat-pulse');
+      requestAnimationFrame(() => el.classList.add('stat-pulse'));
     }
 
     this[lastKey] = value;

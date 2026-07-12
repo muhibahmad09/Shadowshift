@@ -29,7 +29,7 @@ import { MissionsPanel } from './game/missionsPanel.js';
 import { achievementStore } from './game/achievementStore.js';
 import { AchievementsPanel } from './game/achievementsPanel.js';
 import { AchievementToast } from './game/achievementToast.js';
-import { playerIdentity } from './game/playerIdentity.js';
+import { playerIdentity, generateGuestName } from './game/playerIdentity.js';
 import { registerPlayer, submitScore } from './game/leaderboardClient.js';
 import { LeaderboardPanel } from './game/leaderboardPanel.js';
 
@@ -346,7 +346,6 @@ async function submitRunToLeaderboard(stats) {
     // Register if needed, falling back to the multiplayer saved name
     if (!playerIdentity.isRegistered()) {
       const savedMpName = localStorage.getItem('shadowshift_mp_name');
-      const { generateGuestName } = await import('./game/playerIdentity.js');
       const name = savedMpName || generateGuestName();
       const data = await registerPlayer(playerIdentity.token, name);
       playerIdentity.set(data);

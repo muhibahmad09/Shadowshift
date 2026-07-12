@@ -27,7 +27,8 @@ export class Confetti {
     this._dpr = 1;
     this._lastTime = 0;
 
-    this._resizeObserver = new ResizeObserver(() => this._resize());
+    this._resizeBound = () => this._resize();
+    this._resizeObserver = new ResizeObserver(this._resizeBound);
     this._resizeObserver.observe(canvasEl);
     this._resize();
   }
@@ -83,19 +84,25 @@ export class Confetti {
   _update(deltaSeconds) {
     const dragFactor = Math.pow(1 - DRAG, deltaSeconds * 60);
 
-    this.pieces = this.pieces.filter((piece) => {
+    // In-place removal (swap-and-pop) avoids allocating a new array every
+    // frame — important because _update runs at 60 Hz during the animation.
+    let i = this.pieces.length - 1;
+    while (i >= 0) {
+      const piece = this.pieces[i];
       piece.life += deltaSeconds;
       if (piece.life >= piece.maxLife || piece.y > this._height + 40) {
-        return false;
+        // Swap with last element and pop — O(1) removal, order doesn't matter.
+        this.pieces[i] = this.pieces[this.pieces.length - 1];
+        this.pieces.pop();
+      } else {
+        piece.vy += GRAVITY * deltaSeconds;
+        piece.vx *= dragFactor;
+        piece.x += piece.vx * deltaSeconds;
+        piece.y += piece.vy * deltaSeconds;
+        piece.rotation += piece.rotationSpeed * deltaSeconds;
       }
-
-      piece.vy += GRAVITY * deltaSeconds;
-      piece.vx *= dragFactor;
-      piece.x += piece.vx * deltaSeconds;
-      piece.y += piece.vy * deltaSeconds;
-      piece.rotation += piece.rotationSpeed * deltaSeconds;
-      return true;
-    });
+      i -= 1;
+    }
   }
 
   _draw() {
@@ -127,5 +134,14 @@ export class Confetti {
       this._raf = null;
     }
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  /**
+   * Permanently tear down this instance — disconnects the ResizeObserver and
+   * cancels any running animation. Call when the parent overlay is destroyed.
+   */
+  destroy() {
+    this.clear();
+    this._resizeObserver.disconnect();
   }
 }

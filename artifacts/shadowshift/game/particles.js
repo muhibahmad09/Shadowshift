@@ -78,17 +78,18 @@ export class ParticleSystem {
   }
 
   draw(ctx) {
+    // Single save/restore for the whole batch — setting globalAlpha and
+    // fillStyle directly is fine and avoids 48 save/restore pairs per frame.
+    ctx.save();
     for (const particle of this.pool) {
       if (!particle.active) continue;
 
-      const alpha = Math.max(0, particle.life / particle.maxLife);
-      ctx.save();
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
       ctx.fillStyle = particle.color;
       ctx.beginPath();
       ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
+    ctx.restore();
   }
 }

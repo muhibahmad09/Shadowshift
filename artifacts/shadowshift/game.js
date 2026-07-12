@@ -19,6 +19,8 @@ import { wallet } from './game/wallet.js';
 import { shopStore } from './game/shopStore.js';
 import { ShopPanel } from './game/shopPanel.js';
 import { applyTheme } from './game/worldManager.js';
+import { missionStore } from './game/missionStore.js';
+import { MissionsPanel } from './game/missionsPanel.js';
 
 // Apply the persisted Color Theme (or the Classic default) before the menu
 // and play scenes render their first frame.
@@ -190,6 +192,26 @@ const shopPanel = new ShopPanel({
 document.getElementById('menu-shop-btn').addEventListener('click', () => {
   shopPanel.show();
 });
+
+const missionsPanel = new MissionsPanel({
+  panelEl: document.getElementById('missions-panel'),
+  closeBtnEl: document.getElementById('missions-close-btn'),
+  tabsEl: document.getElementById('missions-tabs'),
+  listEl: document.getElementById('missions-list'),
+  balanceEl: document.getElementById('missions-balance-value'),
+});
+
+document.getElementById('menu-missions-btn').addEventListener('click', () => {
+  missionsPanel.show();
+});
+// A pulsing dot on the Missions button flags an unclaimed reward without
+// the player needing to open the panel first.
+const menuMissionsDotEl = document.getElementById('menu-missions-dot');
+function syncMissionsDot() {
+  menuMissionsDotEl.hidden = !missionStore.hasClaimable();
+}
+syncMissionsDot();
+missionStore.onChange(syncMissionsDot);
 const switchButton = new WorldSwitchButton(switchButtonEl, () =>
   playScene.requestWorldSwitch(),
 );

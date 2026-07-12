@@ -20,6 +20,7 @@ import { settings } from './settings.js';
 import { vibrate, HAPTICS } from './vibration.js';
 import { shopStore } from './shopStore.js';
 import { wallet } from './wallet.js';
+import { missionStats } from './missionStats.js';
 
 const GROUND_MARGIN_RATIO = 0.22; // ground line sits this far up from the bottom
 const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
@@ -143,6 +144,7 @@ export class PlayScene extends Scene {
       this._syncWorldChrome();
       vibrate(HAPTICS.worldSwitch);
       this.sfx.playWorldSwitch();
+      missionStats.addWorldSwitch();
     }
   }
 
@@ -187,6 +189,9 @@ export class PlayScene extends Scene {
     // drives obstacles and coins — so the HUD number always matches what
     // the player sees.
     this.scoreManager.addDistance(this.difficulty.speed * deltaSeconds);
+    // Missions that gate on distance (e.g. "Reach 1000m") can unlock
+    // mid-run rather than waiting for game over.
+    missionStats.reportDistance(this.scoreManager.distanceMeters);
 
     this.spawner.update(deltaSeconds, {
       speed: this.difficulty.speed,
@@ -234,6 +239,7 @@ export class PlayScene extends Scene {
 
       coin.active = false;
       this.scoreManager.addCoin(COIN_SCORE_VALUE);
+      missionStats.addCoins(1);
       this.particles.spawnBurst(
         coin.x,
         coin.y,
@@ -315,6 +321,7 @@ export class PlayScene extends Scene {
     this.player.x = Math.max(120, this.width * 0.25);
     this.player.reset(this.groundY);
     this._syncWorldChrome();
+    missionStats.addGamePlayed();
     if (this.hud) {
       this.hud.sync(this.scoreManager);
     }

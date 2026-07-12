@@ -499,6 +499,38 @@ body.scene-menu #main-menu {
   animation-delay: 0.6s;
 }
 
+.menu-actions .menu-btn:nth-child(6) {
+  animation-delay: 0.7s;
+}
+
+.menu-btn {
+  position: relative;
+}
+
+.menu-btn-dot {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.9rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #f87171;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
+  animation: menu-btn-dot-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes menu-btn-dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.65;
+  }
+}
+
 @keyframes menu-btn-in {
   from {
     opacity: 0;
@@ -1080,6 +1112,152 @@ body.scene-menu #main-menu {
   80% {
     transform: translateX(3px);
   }
+}
+
+/* ---------------------------------------------------------------------
+   Missions panel — reuses the shop's overlay/card/tabs chrome, swapping
+   the item grid for a vertical list of progress rows.
+   --------------------------------------------------------------------- */
+
+#missions-panel {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.7);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 50;
+}
+
+#missions-panel.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#missions-panel .shop-card {
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.25s ease;
+}
+
+#missions-panel.is-open .shop-card {
+  transform: translateY(0) scale(1);
+}
+
+.shop-tab.has-claimable {
+  border-color: rgba(248, 113, 113, 0.6);
+  box-shadow: 0 0 12px rgba(248, 113, 113, 0.3);
+}
+
+.mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.mission-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mission-row.is-complete {
+  border-color: rgba(251, 191, 36, 0.55);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.2);
+}
+
+.mission-row.is-claimed {
+  border-color: rgba(74, 222, 128, 0.4);
+  opacity: 0.75;
+}
+
+.mission-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mission-name {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.mission-desc {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-bottom: 0.4rem;
+}
+
+.mission-progress-track {
+  width: 100%;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 0.3rem;
+}
+
+.mission-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8b5cf6, #c4b5fd);
+  transition: width 0.3s ease;
+}
+
+.mission-row.is-complete .mission-progress-fill {
+  background: linear-gradient(90deg, #fbbf24, #fde68a);
+}
+
+.mission-progress-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.7rem;
+  opacity: 0.55;
+}
+
+.mission-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  flex: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(135deg, #fbbf24, #b45309);
+  color: #fff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.mission-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(251, 191, 36, 0.35);
+}
+
+.mission-btn.is-disabled {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.mission-btn.is-claimed-btn {
+  background: rgba(74, 222, 128, 0.16);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #86efac;
+  cursor: default;
 }
 
 /* ---------------------------------------------------------------------

@@ -77,6 +77,10 @@
         <button type="button" class="menu-btn menu-btn-primary" id="menu-play-btn">Play</button>
         <button type="button" class="menu-btn" id="menu-multiplayer-btn">Multiplayer</button>
         <button type="button" class="menu-btn" id="menu-shop-btn">Shop</button>
+        <button type="button" class="menu-btn" id="menu-missions-btn">
+          Missions
+          <span class="menu-btn-dot" id="menu-missions-dot" hidden></span>
+        </button>
         <button type="button" class="menu-btn" id="menu-settings-btn">Settings</button>
         <button type="button" class="menu-btn menu-btn-danger" id="menu-exit-btn">Exit</button>
       </nav>
@@ -159,6 +163,28 @@
         </div>
 
         <div class="shop-grid" id="shop-grid"></div>
+      </div>
+    </div>
+
+    <div id="missions-panel">
+      <div class="shop-card">
+        <div class="shop-header">
+          <h2 class="shop-title">Missions</h2>
+          <div class="shop-balance">
+            <span class="coin-icon" aria-hidden="true"></span>
+            <span id="missions-balance-value">0</span>
+          </div>
+          <button type="button" class="settings-close" id="missions-close-btn" aria-label="Close missions">&times;</button>
+        </div>
+
+        <div class="shop-tabs" id="missions-tabs">
+          <button type="button" class="shop-tab" data-category="coinsCollected">Coins</button>
+          <button type="button" class="shop-tab" data-category="bestDistanceMeters">Distance</button>
+          <button type="button" class="shop-tab" data-category="worldSwitches">Switches</button>
+          <button type="button" class="shop-tab" data-category="gamesPlayed">Games</button>
+        </div>
+
+        <div class="mission-list" id="missions-list"></div>
       </div>
     </div>
 

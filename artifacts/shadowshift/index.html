@@ -202,6 +202,80 @@
 
     <div id="achievement-toast-container" aria-live="polite"></div>
 
+    <!-- ── Multiplayer lobby panel ───────────────────────────────────────── -->
+    <div id="mp-panel">
+      <!-- Screen: home (create or join) -->
+      <div class="mp-screen" data-screen="home">
+        <h2 class="mp-title">Multiplayer</h2>
+        <p class="mp-subtitle">Race up to 4 players. Last one standing wins.</p>
+        <div class="mp-field">
+          <label class="mp-label" for="mp-name-input">Your Name</label>
+          <input type="text" class="mp-input" id="mp-name-input" maxlength="20" placeholder="Enter your name" autocomplete="off" />
+        </div>
+        <div class="mp-home-actions">
+          <button type="button" class="menu-btn menu-btn-primary" id="mp-create-btn">Create Room</button>
+          <button type="button" class="menu-btn" id="mp-show-join-btn">Join Room</button>
+        </div>
+        <button type="button" class="menu-btn menu-btn-danger mp-back-btn" id="mp-home-back-btn">Back</button>
+      </div>
+
+      <!-- Screen: join with code -->
+      <div class="mp-screen" data-screen="join" hidden>
+        <h2 class="mp-title">Join Room</h2>
+        <div class="mp-field">
+          <label class="mp-label" for="mp-join-name-input">Your Name</label>
+          <input type="text" class="mp-input" id="mp-join-name-input" maxlength="20" placeholder="Enter your name" autocomplete="off" />
+        </div>
+        <div class="mp-field">
+          <label class="mp-label" for="mp-join-code-input">Room Code</label>
+          <input type="text" class="mp-input mp-code-input" id="mp-join-code-input" maxlength="4" placeholder="XXXX" autocomplete="off" spellcheck="false" />
+        </div>
+        <button type="button" class="menu-btn menu-btn-primary" id="mp-join-btn">Join Game</button>
+        <button type="button" class="menu-btn" id="mp-join-back-btn">Back</button>
+        <p class="mp-error" id="mp-join-error"></p>
+      </div>
+
+      <!-- Screen: lobby (waiting room) -->
+      <div class="mp-screen" data-screen="lobby" hidden>
+        <h2 class="mp-title">Room</h2>
+        <div class="mp-code-display">
+          <span class="mp-code-label">Room Code</span>
+          <span class="mp-code-value" id="mp-code-value">----</span>
+          <button type="button" class="mp-copy-btn" id="mp-copy-code-btn">Copy</button>
+        </div>
+        <div class="mp-player-list" id="mp-player-list"></div>
+        <p class="mp-waiting-hint" id="mp-waiting-hint">Waiting for players…</p>
+        <div class="mp-lobby-actions">
+          <button type="button" class="menu-btn menu-btn-primary" id="mp-start-btn" hidden>Start Game</button>
+          <button type="button" class="menu-btn menu-btn-danger" id="mp-leave-btn">Leave Room</button>
+        </div>
+        <p class="mp-error" id="mp-lobby-error"></p>
+      </div>
+    </div>
+
+    <!-- ── Multiplayer: eliminated overlay (watch others after dying) ─────── -->
+    <div id="mp-eliminated-overlay">
+      <div class="mp-elim-card">
+        <h2 class="mp-elim-title">Eliminated!</h2>
+        <p class="mp-elim-rank" id="mp-elim-rank"></p>
+        <p class="mp-elim-score-label">Score: <span id="mp-elim-score">0</span></p>
+        <p class="mp-elim-hint">Watching the race…</p>
+        <button type="button" class="menu-btn menu-btn-danger" id="mp-elim-leave-btn">Leave Race</button>
+      </div>
+    </div>
+
+    <!-- ── Multiplayer: final race results ───────────────────────────────── -->
+    <div id="mp-results-overlay">
+      <div class="mp-results-card">
+        <h2 class="mp-results-title" id="mp-results-title">Race Over</h2>
+        <div class="mp-results-list" id="mp-results-list"></div>
+        <div class="mp-results-actions">
+          <button type="button" class="menu-btn menu-btn-primary" id="mp-results-lobby-btn">Play Again</button>
+          <button type="button" class="menu-btn menu-btn-danger" id="mp-results-menu-btn">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
     <div id="settings-panel">
       <div class="settings-card">
         <div class="settings-header">

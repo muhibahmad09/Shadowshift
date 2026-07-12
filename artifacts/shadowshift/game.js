@@ -5,6 +5,11 @@
 
 import { Engine } from './engine/engine.js';
 import { PlayScene } from './game/playScene.js';
+import { MultiplayerPlayScene } from './game/multiplayerPlayScene.js';
+import { MultiplayerClient } from './game/multiplayerClient.js';
+import { MultiplayerLobbyPanel } from './game/multiplayerLobbyPanel.js';
+import { MultiplayerResultsPanel } from './game/multiplayerResultsPanel.js';
+import { MultiplayerEliminatedOverlay } from './game/multiplayerEliminatedOverlay.js';
 import { MenuScene } from './game/menuScene.js';
 import { WorldSwitchButton } from './game/worldSwitchButton.js';
 import { Hud } from './game/hud.js';
@@ -184,6 +189,79 @@ const playScene = new PlayScene({
   },
 });
 
+// ── Multiplayer ────────────────────────────────────────────────────────────
+
+const mpClient = new MultiplayerClient();
+let mpRoomInfo = null; // set when a game starts; kept so results panel can reference it
+
+const mpEliminatedOverlay = new MultiplayerEliminatedOverlay({
+  overlayEl: document.getElementById('mp-eliminated-overlay'),
+  onLeave: () => {
+    mpEliminatedOverlay.hide();
+    mpResultsPanel.hide();
+    engine.scenes.switchTo('menu');
+    mpClient.send({ type: 'leave_room' });
+  },
+});
+
+const mpResultsPanel = new MultiplayerResultsPanel({
+  panelEl: document.getElementById('mp-results-overlay'),
+  onPlayAgain: () => {
+    mpResultsPanel.hide();
+    mpEliminatedOverlay.hide();
+    engine.scenes.switchTo('menu');
+    // Re-open the lobby panel so they can start another round in the same room.
+    mpLobbyPanel.show();
+  },
+  onMainMenu: () => {
+    mpResultsPanel.hide();
+    mpEliminatedOverlay.hide();
+    engine.scenes.switchTo('menu');
+    mpClient.send({ type: 'leave_room' });
+  },
+});
+
+const mpPlayScene = new MultiplayerPlayScene({
+  worldLabelEl: hudWorldEl,
+  hud,
+  sfx,
+  onPauseChange: (isPaused) => {
+    // No pause in multiplayer — other players keep running.
+  },
+  // Single-player onGameOver is intentionally not used in multiplayer;
+  // _triggerGameOver is overridden in MultiplayerPlayScene.
+  onGameOver: () => {},
+  onLocalEliminated: ({ score }) => {
+    // Show immediately; rank is confirmed by the server shortly after.
+    mpEliminatedOverlay.show({ score, rank: null });
+  },
+  onEliminationConfirmed: ({ rank, score }) => {
+    mpEliminatedOverlay.show({ score, rank });
+  },
+  onMultiplayerGameOver: (rankings) => {
+    mpEliminatedOverlay.hide();
+    if (rankings && rankings.length > 0) {
+      mpResultsPanel.show(rankings, mpRoomInfo?.playerId ?? null);
+    } else {
+      // Disconnection — go straight to menu.
+      engine.scenes.switchTo('menu');
+    }
+  },
+});
+
+const mpLobbyPanel = new MultiplayerLobbyPanel({
+  panelEl: document.getElementById('mp-panel'),
+  client: mpClient,
+  onGameStart: (roomInfo) => {
+    mpRoomInfo = roomInfo;
+    mpPlayScene.init(mpClient, roomInfo);
+    engine.scenes.switchTo('multiplayer');
+  },
+  onBack: () => {
+    // Already back on the menu; nothing else to do.
+  },
+});
+
 const shopPanel = new ShopPanel({
   panelEl: document.getElementById('shop-panel'),
   closeBtnEl: document.getElementById('shop-close-btn'),
@@ -230,10 +308,16 @@ const achievementToast = new AchievementToast({
   containerEl: document.getElementById('achievement-toast-container'),
 });
 achievementStore.onUnlock((achievement) => achievementToast.enqueue(achievement));
-const switchButton = new WorldSwitchButton(switchButtonEl, () =>
-  playScene.requestWorldSwitch(),
-);
+const switchButton = new WorldSwitchButton(switchButtonEl, () => {
+  const active = engine.scenes.currentName;
+  if (active === 'multiplayer') {
+    mpPlayScene.requestWorldSwitch();
+  } else {
+    playScene.requestWorldSwitch();
+  }
+});
 playScene.worldSwitchButton = switchButton;
+mpPlayScene.worldSwitchButton = switchButton;
 
 pauseMenu.setHandlers({
   onResume: () => playScene.resume(),
@@ -248,11 +332,15 @@ pauseMenu.setHandlers({
 });
 
 document.getElementById('pause-btn').addEventListener('click', () => {
-  playScene.pause();
+  // Pause only available in single-player mode.
+  if (engine.scenes.currentName === 'play') {
+    playScene.pause();
+  }
 });
 
 engine.scenes.add('menu', menuScene);
 engine.scenes.add('play', playScene);
+engine.scenes.add('multiplayer', mpPlayScene);
 engine.scenes.switchTo('menu');
 
 engine.start();
@@ -266,11 +354,7 @@ document.getElementById('menu-play-btn').addEventListener('click', () => {
 document
   .getElementById('menu-multiplayer-btn')
   .addEventListener('click', () => {
-    modal.show({
-      title: 'Multiplayer',
-      body: 'Multiplayer mode is coming soon — race friends across both worlds in a future update.',
-      actions: [{ label: 'Got it', primary: true }],
-    });
+    mpLobbyPanel.show();
   });
 
 const settingsPanel = new SettingsPanel({

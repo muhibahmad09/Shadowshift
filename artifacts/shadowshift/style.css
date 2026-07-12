@@ -1945,3 +1945,393 @@ body.scene-play #pause-btn {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ── Multiplayer panels ────────────────────────────────────────────────── */
+
+#mp-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#mp-panel.is-visible {
+  display: flex;
+}
+
+.mp-screen {
+  width: min(440px, 92vw);
+  background: linear-gradient(160deg, #0e1020 0%, #080b18 100%);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 20px;
+  padding: 2rem 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.mp-title {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-bottom: 0.1rem;
+}
+
+.mp-subtitle {
+  font-size: 0.82rem;
+  color: rgba(232, 230, 245, 0.55);
+  text-align: center;
+  margin-top: -0.5rem;
+}
+
+.mp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mp-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(232, 230, 245, 0.6);
+}
+
+.mp-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text-light);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mp-input:focus {
+  border-color: rgba(139, 92, 246, 0.75);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+.mp-code-input {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0.25em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.mp-home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.mp-back-btn {
+  margin-top: 0.25rem;
+}
+
+/* Room code display */
+.mp-code-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+}
+
+.mp-code-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 230, 245, 0.5);
+  flex-shrink: 0;
+}
+
+.mp-code-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(139, 92, 246, 0.6);
+  flex: 1;
+}
+
+.mp-copy-btn {
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 7px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.mp-copy-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+/* Player slots */
+.mp-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mp-player-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  min-height: 2.6rem;
+}
+
+.mp-player-slot-filled {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mp-player-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mp-player-dot-empty {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mp-player-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.mp-player-empty {
+  flex: 1;
+  font-size: 0.82rem;
+  color: rgba(232, 230, 245, 0.3);
+  font-style: italic;
+}
+
+.mp-you-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 5px;
+  padding: 0.05rem 0.35rem;
+  color: var(--accent);
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.mp-host-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 5px;
+  padding: 0.05rem 0.35rem;
+}
+
+.mp-waiting-hint {
+  font-size: 0.78rem;
+  color: rgba(232, 230, 245, 0.4);
+  text-align: center;
+}
+
+.mp-lobby-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mp-error {
+  min-height: 1.1rem;
+  font-size: 0.82rem;
+  color: #f87171;
+  text-align: center;
+}
+
+/* ── Eliminated overlay ─────────────────────────────────────────────────── */
+
+#mp-eliminated-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.6);
+  pointer-events: none;
+}
+
+#mp-eliminated-overlay.is-visible {
+  display: flex;
+  pointer-events: auto;
+}
+
+.mp-elim-card {
+  background: linear-gradient(160deg, #0e1020 0%, #080b18 100%);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 18px;
+  padding: 1.75rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: 0 0 32px rgba(248, 113, 113, 0.15);
+  max-width: 320px;
+  width: 90vw;
+}
+
+.mp-elim-title {
+  font-family: 'Orbitron', system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f87171;
+}
+
+.mp-elim-rank {
+  font-size: 1rem;
+  color: rgba(232, 230, 245, 0.75);
+  font-weight: 600;
+}
+
+.mp-elim-score-label {
+  font-size: 0.9rem;
+  color: rgba(232, 230, 245, 0.55);
+}
+
+.mp-elim-hint {
+  font-size: 0.78rem;
+  color: rgba(232, 230, 245, 0.35);
+  font-style: italic;
+}
+
+/* ── Race results overlay ───────────────────────────────────────────────── */
+
+#mp-results-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#mp-results-overlay.is-visible {
+  display: flex;
+}
+
+.mp-results-card {
+  background: linear-gradient(160deg, #0e1020 0%, #080b18 100%);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 20px;
+  padding: 2rem;
+  width: min(440px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.18), 0 8px 32px rgba(0, 0, 0, 0.7);
+}
+
+.mp-results-title {
+  font-family: 'Orbitron', system-ui, sans-serif;
+  font-size: clamp(1.2rem, 4vw, 1.6rem);
+  font-weight: 700;
+  color: var(--text-light);
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+.mp-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mp-result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+}
+
+.mp-result-mine {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.07);
+}
+
+.mp-result-rank {
+  font-size: 1.1rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.mp-result-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mp-result-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.mp-result-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.mp-results-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}

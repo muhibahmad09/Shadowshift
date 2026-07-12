@@ -22,6 +22,15 @@ const ARM_SWING = 12; // px of horizontal arm travel at full stride
 // principle polish that makes the jump read as a real push-off/impact
 // instead of just a parabola.
 const SQUASH_SPRING_SPEED = 14; // how fast scale relaxes back to 1
+const TRAIL_HUE_SPEED = 140; // degrees/s the Prism Streak trail cycles through
+
+/** Original Violet Drifter look — used until a shop skin is equipped. */
+const DEFAULT_SKIN = {
+  body: '#c4b5fd',
+  limb: '#8b5cf6',
+  arm: '#a78bfa',
+  glow: 'rgba(139, 92, 246, 0.65)',
+};
 
 export class Player {
   constructor() {
@@ -49,6 +58,27 @@ export class Player {
     /** Short ring buffer of recent {x, y, scaleY} for the motion-trail afterimage. */
     this._trail = [];
     this._trailTimer = 0;
+
+    /** Cosmetic skin colors (body/limb/arm/glow) — see setSkin(). */
+    this._skin = { ...DEFAULT_SKIN };
+    /** Trail color: a CSS color, 'rainbow' for the Prism Streak, or null (no trail). */
+    this._trailColor = '#8b5cf6';
+    this._trailHue = 0;
+  }
+
+  /** Apply a shop skin's colors. Missing fields fall back to the default look. */
+  setSkin(skin) {
+    this._skin = {
+      body: skin?.body ?? DEFAULT_SKIN.body,
+      limb: skin?.limb ?? DEFAULT_SKIN.limb,
+      arm: skin?.arm ?? DEFAULT_SKIN.arm,
+      glow: skin?.glow ?? DEFAULT_SKIN.glow,
+    };
+  }
+
+  /** Set the motion-trail color: a CSS color, 'rainbow', or null to disable. */
+  setTrailColor(color) {
+    this._trailColor = color;
   }
 
   /** Place the player standing on the given ground line, at rest. */
@@ -143,6 +173,7 @@ export class Player {
     }
 
     this._updateTrail(deltaSeconds);
+    this._trailHue = (this._trailHue + deltaSeconds * TRAIL_HUE_SPEED) % 360;
   }
 
   _updateTrail(deltaSeconds) {
@@ -201,6 +232,8 @@ export class Player {
   }
 
   _drawTrail(ctx, centerX) {
+    if (!this._trailColor) return;
+
     const steps = this._trail.length;
     for (let i = 0; i < steps; i += 1) {
       const ghost = this._trail[i];
@@ -212,7 +245,10 @@ export class Player {
       ctx.save();
       ctx.translate(centerX, 0);
       ctx.globalAlpha = age * 0.16;
-      ctx.fillStyle = '#8b5cf6';
+      ctx.fillStyle =
+        this._trailColor === 'rainbow'
+          ? `hsl(${(this._trailHue + i * 40) % 360}, 85%, 65%)`
+          : this._trailColor;
       ctx.beginPath();
       ctx.moveTo(-radius, topY + radius);
       ctx.arcTo(-radius, topY, 0, topY, radius);
@@ -233,7 +269,7 @@ export class Player {
     const backSwing = stride * ARM_SWING;
 
     ctx.save();
-    ctx.strokeStyle = '#a78bfa';
+    ctx.strokeStyle = this._skin.arm;
     ctx.lineWidth = 5;
     ctx.lineCap = 'round';
 
@@ -280,7 +316,7 @@ export class Player {
     const frontSwing = stride * LEG_SWING;
     const backSwing = -stride * LEG_SWING;
 
-    ctx.strokeStyle = '#8b5cf6';
+    ctx.strokeStyle = this._skin.limb;
     ctx.lineWidth = 6;
     ctx.lineCap = 'round';
 
@@ -300,10 +336,10 @@ export class Player {
     const radius = this.width / 2;
 
     // Soft glow behind the silhouette so it reads against the dark backdrop.
-    ctx.shadowColor = 'rgba(139, 92, 246, 0.65)';
+    ctx.shadowColor = this._skin.glow;
     ctx.shadowBlur = glowBlur;
 
-    ctx.fillStyle = '#c4b5fd';
+    ctx.fillStyle = this._skin.body;
     ctx.beginPath();
     ctx.moveTo(-radius, topY + radius);
     ctx.arcTo(-radius, topY, -radius + radius, topY, radius);

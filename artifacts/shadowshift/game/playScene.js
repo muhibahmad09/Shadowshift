@@ -18,6 +18,8 @@ import { Sfx } from './audio.js';
 import { ScoreManager } from './scoreManager.js';
 import { settings } from './settings.js';
 import { vibrate, HAPTICS } from './vibration.js';
+import { shopStore } from './shopStore.js';
+import { wallet } from './wallet.js';
 
 const GROUND_MARGIN_RATIO = 0.22; // ground line sits this far up from the bottom
 const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
@@ -73,6 +75,19 @@ export class PlayScene extends Scene {
         this.ambientParticles.setCount(settings.qualityPreset.ambientParticleCount);
       }
     });
+
+    // Apply the equipped skin/trail immediately, and again any time the
+    // player buys or re-equips something from the shop (e.g. mid-pause).
+    this._applyShopLoadout();
+    shopStore.onChange(() => this._applyShopLoadout());
+  }
+
+  _applyShopLoadout() {
+    const skinItem = shopStore.getEquippedItem('skins');
+    this.player.setSkin(skinItem?.skin);
+
+    const trailItem = shopStore.getEquippedItem('trails');
+    this.player.setTrailColor(trailItem?.trail?.color ?? null);
   }
 
   onEnter() {
@@ -252,6 +267,10 @@ export class PlayScene extends Scene {
     this.sfx.playCollision();
     this._spawnGameOverConfetti();
 
+    // Bank this run's coins into the persistent wallet so they can be
+    // spent in the shop — the per-run ScoreManager count resets next run.
+    wallet.deposit(this.scoreManager.coins);
+
     this._onGameOver?.({
       score: this.scoreManager.score,
       highScore: this.scoreManager.highScore,
@@ -307,11 +326,13 @@ export class PlayScene extends Scene {
     this._drawBackground(ctx);
     this.background.draw(ctx, this.world, this.groundY);
 
-    const ambientColor = lerpColor(
-      this.world.previous.accent,
-      this.world.current.accent,
-      this.world.colorBlend,
-    );
+    // A shop-equipped World Effect overrides the default per-world ambient
+    // color; "Classic Motes" (particleColor: null) keeps the original
+    // Light/Shadow-blended look.
+    const worldEffect = shopStore.getEquippedItem('worldEffects');
+    const ambientColor =
+      worldEffect?.worldEffect?.particleColor ??
+      lerpColor(this.world.previous.accent, this.world.current.accent, this.world.colorBlend);
     this.ambientParticles.draw(ctx, ambientColor);
 
     this._drawGround(ctx);

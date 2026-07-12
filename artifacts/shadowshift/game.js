@@ -15,6 +15,14 @@ import { GameOverScreen } from './game/gameOverScreen.js';
 import { Confetti } from './game/confetti.js';
 import { Sfx, Music } from './game/audio.js';
 import { settings, QUALITY_PRESETS } from './game/settings.js';
+import { wallet } from './game/wallet.js';
+import { shopStore } from './game/shopStore.js';
+import { ShopPanel } from './game/shopPanel.js';
+import { applyTheme } from './game/worldManager.js';
+
+// Apply the persisted Color Theme (or the Classic default) before the menu
+// and play scenes render their first frame.
+applyTheme(shopStore.getEquippedItem('themes')?.theme);
 
 const canvas = document.getElementById('game-canvas');
 const switchButtonEl = document.getElementById('switch-world-btn');
@@ -82,6 +90,15 @@ const menuScene = new MenuScene({
   menuEl: document.getElementById('main-menu'),
   highScoreEl: document.getElementById('menu-highscore'),
 });
+
+// Coin badge on the main menu — kept live for the whole session so it's
+// already correct the moment the player lands back on the menu.
+const menuCoinsEl = document.getElementById('menu-coins');
+function syncMenuCoins() {
+  menuCoinsEl.textContent = String(wallet.balance);
+}
+syncMenuCoins();
+wallet.onChange(syncMenuCoins);
 
 const pauseMenu = new PauseMenu({
   panelEl: document.getElementById('pause-menu'),
@@ -160,6 +177,18 @@ const playScene = new PlayScene({
     gameOverScreen.show(stats);
     confetti.burst(stats.isNewHighScore ? 160 : 90);
   },
+});
+
+const shopPanel = new ShopPanel({
+  panelEl: document.getElementById('shop-panel'),
+  closeBtnEl: document.getElementById('shop-close-btn'),
+  tabsEl: document.getElementById('shop-tabs'),
+  gridEl: document.getElementById('shop-grid'),
+  balanceEl: document.getElementById('shop-balance-value'),
+});
+
+document.getElementById('menu-shop-btn').addEventListener('click', () => {
+  shopPanel.show();
 });
 const switchButton = new WorldSwitchButton(switchButtonEl, () =>
   playScene.requestWorldSwitch(),

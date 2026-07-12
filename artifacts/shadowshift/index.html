@@ -62,14 +62,21 @@
         <span class="menu-tagline">Slip between light and shadow</span>
       </div>
 
-      <div class="menu-highscore">
-        <span class="menu-highscore-label">High Score</span>
-        <span class="menu-highscore-value" id="menu-highscore">0</span>
+      <div class="menu-badges">
+        <div class="menu-highscore">
+          <span class="menu-highscore-label">High Score</span>
+          <span class="menu-highscore-value" id="menu-highscore">0</span>
+        </div>
+        <div class="menu-coins">
+          <span class="menu-coins-label">Coins</span>
+          <span class="menu-coins-value"><span class="coin-icon" aria-hidden="true"></span><span id="menu-coins">0</span></span>
+        </div>
       </div>
 
       <nav class="menu-actions">
         <button type="button" class="menu-btn menu-btn-primary" id="menu-play-btn">Play</button>
         <button type="button" class="menu-btn" id="menu-multiplayer-btn">Multiplayer</button>
+        <button type="button" class="menu-btn" id="menu-shop-btn">Shop</button>
         <button type="button" class="menu-btn" id="menu-settings-btn">Settings</button>
         <button type="button" class="menu-btn menu-btn-danger" id="menu-exit-btn">Exit</button>
       </nav>
@@ -130,6 +137,28 @@
         <h2 class="modal-title" id="modal-title"></h2>
         <p class="modal-body" id="modal-body"></p>
         <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>
+
+    <div id="shop-panel">
+      <div class="shop-card">
+        <div class="shop-header">
+          <h2 class="shop-title">Shop</h2>
+          <div class="shop-balance">
+            <span class="coin-icon" aria-hidden="true"></span>
+            <span id="shop-balance-value">0</span>
+          </div>
+          <button type="button" class="settings-close" id="shop-close-btn" aria-label="Close shop">&times;</button>
+        </div>
+
+        <div class="shop-tabs" id="shop-tabs">
+          <button type="button" class="shop-tab" data-category="skins">Skins</button>
+          <button type="button" class="shop-tab" data-category="trails">Trails</button>
+          <button type="button" class="shop-tab" data-category="worldEffects">World FX</button>
+          <button type="button" class="shop-tab" data-category="themes">Themes</button>
+        </div>
+
+        <div class="shop-grid" id="shop-grid"></div>
       </div>
     </div>
 

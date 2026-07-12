@@ -28,6 +28,19 @@ export const WORLDS = {
   },
 };
 
+/**
+ * Overwrite the Light/Shadow color palettes in place — everything that
+ * reads from WORLDS.light/WORLDS.shadow (WorldManager, MenuScene, HUD
+ * chrome) holds onto these same object references, so equipping a new
+ * Color Theme from the shop takes effect immediately everywhere without
+ * needing to thread the choice through every consumer.
+ */
+export function applyTheme(theme) {
+  if (!theme) return;
+  if (theme.light) Object.assign(WORLDS.light, theme.light);
+  if (theme.shadow) Object.assign(WORLDS.shadow, theme.shadow);
+}
+
 const SWITCH_DURATION = 0.6; // seconds for the visual crossfade
 const COOLDOWN_DURATION = 1.4; // seconds before another switch is allowed
 const FLASH_DECAY = 0.35; // seconds for the screen flash to fade out

@@ -67,6 +67,17 @@ function syncMusic() {
 document.addEventListener('pointerdown', syncMusic, { once: true });
 document.addEventListener('keydown', syncMusic, { once: true });
 
+// A single delegated listener covers every button in the app (menu, pause,
+// settings, game over, modal) instead of wiring a click sound into each
+// DOM binder individually. The world-switch button is excluded — it plays
+// its own distinct "world switch" sound from PlayScene instead of a
+// generic click, so it doesn't fire both.
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button || button === switchButtonEl) return;
+  sfx.playClick();
+});
+
 const menuScene = new MenuScene({
   menuEl: document.getElementById('main-menu'),
   highScoreEl: document.getElementById('menu-highscore'),

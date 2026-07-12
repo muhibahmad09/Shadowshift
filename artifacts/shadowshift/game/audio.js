@@ -53,8 +53,22 @@ export class Sfx {
     return this._ctx;
   }
 
-  /** Placeholder coin-pickup sound — a short synthesized two-tone blip. */
-  playCoin() {
+  /**
+   * Shared synth helper for every short one-shot SFX below — a single
+   * oscillator with an exponential frequency slide and a percussive
+   * attack/decay envelope. All the placeholder sounds are just different
+   * parameterizations of this same shape; swap in real samples later
+   * without touching call sites (`sfx.playJump()` etc. stay the same).
+   */
+  _playTone({
+    type = 'sine',
+    startFreq,
+    endFreq = startFreq,
+    slideSeconds = 0.09,
+    peakGain = 0.25,
+    attackSeconds = 0.01,
+    durationSeconds = 0.18,
+  }) {
     if (this.muted) return;
 
     const ctx = this._ensureContext();
@@ -64,17 +78,135 @@ export class Sfx {
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(880, now);
-    oscillator.frequency.exponentialRampToValueAtTime(1760, now + 0.09);
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(startFreq, now);
+    if (endFreq !== startFreq) {
+      oscillator.frequency.exponentialRampToValueAtTime(endFreq, now + slideSeconds);
+    }
 
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.25, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    gain.gain.exponentialRampToValueAtTime(peakGain, now + attackSeconds);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSeconds);
 
     oscillator.connect(gain).connect(ctx.destination);
     oscillator.start(now);
-    oscillator.stop(now + 0.2);
+    oscillator.stop(now + durationSeconds + 0.02);
+  }
+
+  /** Placeholder coin-pickup sound — a short rising two-tone blip. */
+  playCoin() {
+    this._playTone({
+      type: 'sine',
+      startFreq: 880,
+      endFreq: 1760,
+      slideSeconds: 0.09,
+      peakGain: 0.25,
+      durationSeconds: 0.18,
+    });
+  }
+
+  /** Placeholder jump sound — a quick upward "whoosh" chirp. */
+  playJump() {
+    this._playTone({
+      type: 'triangle',
+      startFreq: 340,
+      endFreq: 620,
+      slideSeconds: 0.1,
+      peakGain: 0.22,
+      durationSeconds: 0.14,
+    });
+  }
+
+  /** Placeholder world-switch sound — a bright, slightly longer sweep to
+   * mark the Light/Shadow transition as a bigger event than a jump/coin. */
+  playWorldSwitch() {
+    if (this.muted) return;
+
+    const ctx = this._ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Two overlapping sweeps (a fifth apart) read as a small "shimmer"
+    // rather than a single flat blip — appropriate for a world-warp beat.
+    this._playTone({
+      type: 'sine',
+      startFreq: 260,
+      endFreq: 1040,
+      slideSeconds: 0.22,
+      peakGain: 0.22,
+      attackSeconds: 0.015,
+      durationSeconds: 0.32,
+    });
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(390, now);
+    osc2.frequency.exponentialRampToValueAtTime(1560, now + 0.22);
+    gain2.gain.setValueAtTime(0.0001, now);
+    gain2.gain.exponentialRampToValueAtTime(0.14, now + 0.015);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+    osc2.connect(gain2).connect(ctx.destination);
+    osc2.start(now);
+    osc2.stop(now + 0.34);
+  }
+
+  /** Placeholder collision/game-over sound — a low descending thud. */
+  playCollision() {
+    if (this.muted) return;
+
+    const ctx = this._ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Tonal thud (descending sine) layered with filtered noise for an
+    // "impact" texture — a single oscillator alone reads too musical for
+    // a crash/game-over beat.
+    this._playTone({
+      type: 'sawtooth',
+      startFreq: 180,
+      endFreq: 55,
+      slideSeconds: 0.28,
+      peakGain: 0.28,
+      attackSeconds: 0.005,
+      durationSeconds: 0.4,
+    });
+
+    const bufferSeconds = 0.25;
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * bufferSeconds, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 900;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.3, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + bufferSeconds);
+
+    noise.connect(filter).connect(noiseGain).connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + bufferSeconds);
+  }
+
+  /** Placeholder UI click sound — a tiny, neutral tick for any button press. */
+  playClick() {
+    this._playTone({
+      type: 'square',
+      startFreq: 520,
+      endFreq: 520,
+      peakGain: 0.08,
+      attackSeconds: 0.002,
+      durationSeconds: 0.05,
+    });
   }
 }
 

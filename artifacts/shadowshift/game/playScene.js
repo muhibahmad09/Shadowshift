@@ -127,6 +127,7 @@ export class PlayScene extends Scene {
     if (accepted) {
       this._syncWorldChrome();
       vibrate(HAPTICS.worldSwitch);
+      this.sfx.playWorldSwitch();
     }
   }
 
@@ -154,7 +155,10 @@ export class PlayScene extends Scene {
     if (input.wasKeyPressed('Space') || input.wasPointerPressed()) {
       const wasGrounded = this.player.isGrounded;
       this.player.jump();
-      if (wasGrounded) vibrate(HAPTICS.jump);
+      if (wasGrounded) {
+        vibrate(HAPTICS.jump);
+        this.sfx.playJump();
+      }
     }
 
     if (input.wasKeyPressed('KeyW')) {
@@ -245,6 +249,7 @@ export class PlayScene extends Scene {
     this.isGameOver = true;
     this.world.flashAlpha = 0.7;
     vibrate(HAPTICS.gameOver);
+    this.sfx.playCollision();
     this._spawnGameOverConfetti();
 
     this._onGameOver?.({

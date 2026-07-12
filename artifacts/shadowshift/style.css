@@ -954,3 +954,358 @@ body.scene-play #pause-btn {
   min-width: 200px;
   animation: none;
 }
+
+/* ---------------------------------------------------------------------
+   Game Over screen — the run summary shown when a run ends. Reuses the
+   pause/modal glassmorphic language, adds a stat grid, a count-up
+   animation on each value, and a falling-confetti canvas layered behind
+   the card for a punchier "impact" beat than a plain dialog.
+   --------------------------------------------------------------------- */
+
+#game-over-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.78);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 45;
+  overflow: hidden;
+}
+
+#game-over-screen.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#confetti-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.game-over-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: min(440px, 92vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  padding: 1.75rem 1.75rem;
+  border-radius: 1.4rem;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 16, 34, 0.92),
+    rgba(10, 8, 18, 0.96)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 26px 80px rgba(5, 6, 10, 0.65),
+    0 0 50px rgba(139, 92, 246, 0.25);
+  transform: translateY(24px) scale(0.94);
+  opacity: 0;
+  transition: none;
+}
+
+#game-over-screen.is-open .game-over-card {
+  animation: game-over-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes game-over-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.game-over-title {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  text-transform: uppercase;
+  color: var(--text-light);
+  text-shadow: 0 0 24px var(--accent-soft);
+  text-align: center;
+  line-height: 1.2;
+  animation: game-over-title-shake 0.5s ease;
+}
+
+#game-over-screen.is-new-best .game-over-title {
+  color: #fbbf24;
+  text-shadow: 0 0 28px rgba(251, 191, 36, 0.65);
+  animation: game-over-title-shake 0.5s ease, game-over-title-glow 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes game-over-title-shake {
+  0% {
+    transform: translateX(0) scale(0.9);
+  }
+  20% {
+    transform: translateX(-6px) scale(1.03);
+  }
+  40% {
+    transform: translateX(5px) scale(1.03);
+  }
+  60% {
+    transform: translateX(-3px) scale(1);
+  }
+  80% {
+    transform: translateX(2px) scale(1);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes game-over-title-glow {
+  from {
+    text-shadow: 0 0 18px rgba(251, 191, 36, 0.5);
+  }
+  to {
+    text-shadow: 0 0 36px rgba(251, 191, 36, 0.9);
+  }
+}
+
+.game-over-badge {
+  display: none;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #241a3d;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.55);
+}
+
+.game-over-badge.is-visible {
+  display: inline-block;
+  animation: game-over-badge-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+@keyframes game-over-badge-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.game-over-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.go-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.09),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  opacity: 0;
+  transform: translateY(14px);
+  animation: game-over-stat-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.game-over-stats .go-stat:nth-child(1) {
+  animation-delay: 0.12s;
+}
+
+.game-over-stats .go-stat:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.game-over-stats .go-stat:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+.game-over-stats .go-stat:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+@keyframes game-over-stat-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.go-stat-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  opacity: 0.6;
+}
+
+.go-stat-value {
+  font-family: 'Orbitron', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.15rem, 3.4vw, 1.5rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-light);
+}
+
+.go-stat-primary {
+  grid-column: 1 / -1;
+  padding: 0.8rem 0.5rem;
+  border-color: rgba(196, 181, 253, 0.4);
+  box-shadow:
+    0 0 26px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.go-stat-primary .go-stat-value {
+  font-size: clamp(1.6rem, 6vw, 2.1rem);
+  color: var(--accent);
+  text-shadow: 0 0 20px var(--accent-soft);
+}
+
+.go-stat-best .go-stat-value {
+  color: #fbbf24;
+  text-shadow: 0 0 14px rgba(251, 191, 36, 0.5);
+}
+
+.game-over-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.game-over-actions .menu-btn {
+  min-width: 0;
+  width: 100%;
+  padding: 0.7rem 1.25rem;
+  animation: game-over-btn-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.game-over-actions .menu-btn:nth-child(1) {
+  animation-delay: 0.44s;
+}
+
+.game-over-actions .menu-btn:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.game-over-actions .menu-btn:nth-child(3) {
+  animation-delay: 0.56s;
+}
+
+@keyframes game-over-btn-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-btn-share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(
+    180deg,
+    rgba(251, 191, 36, 0.14),
+    rgba(251, 191, 36, 0.03)
+  );
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.menu-btn-share:hover,
+.menu-btn-share:focus-visible {
+  border-color: rgba(251, 191, 36, 0.7);
+  box-shadow:
+    0 12px 30px rgba(251, 191, 36, 0.25),
+    0 0 20px rgba(251, 191, 36, 0.3);
+}
+
+.go-share-icon,
+.go-share-icon::before,
+.go-share-icon::after {
+  content: '';
+  display: block;
+}
+
+.go-share-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.go-share-icon::before {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+
+.go-share-icon::after {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fbbf24;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.8);
+}
+
+.go-share-feedback {
+  text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #86efac;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.go-share-feedback.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -87,6 +87,44 @@
       </div>
     </div>
 
+    <div id="game-over-screen">
+      <canvas id="confetti-canvas"></canvas>
+      <div class="game-over-card">
+        <h2 class="game-over-title" id="game-over-title">Game Over</h2>
+
+        <div class="game-over-badge" id="game-over-highscore-badge">New Best!</div>
+
+        <div class="game-over-stats">
+          <div class="go-stat go-stat-primary">
+            <span class="go-stat-label">Final Score</span>
+            <span class="go-stat-value" id="go-score">0</span>
+          </div>
+          <div class="go-stat go-stat-best">
+            <span class="go-stat-label">High Score</span>
+            <span class="go-stat-value" id="go-highscore">0</span>
+          </div>
+          <div class="go-stat">
+            <span class="go-stat-label">Distance</span>
+            <span class="go-stat-value" id="go-distance">0 m</span>
+          </div>
+          <div class="go-stat">
+            <span class="go-stat-label">Coins Collected</span>
+            <span class="go-stat-value" id="go-coins">0</span>
+          </div>
+        </div>
+
+        <nav class="game-over-actions">
+          <button type="button" class="menu-btn menu-btn-primary" id="go-restart-btn">Restart</button>
+          <button type="button" class="menu-btn" id="go-mainmenu-btn">Main Menu</button>
+          <button type="button" class="menu-btn menu-btn-share" id="go-share-btn">
+            <span class="go-share-icon" aria-hidden="true"></span>
+            Share Score
+          </button>
+          <span class="go-share-feedback" id="go-share-feedback"></span>
+        </nav>
+      </div>
+    </div>
+
     <div id="modal-overlay">
       <div class="modal-panel">
         <h2 class="modal-title" id="modal-title"></h2>

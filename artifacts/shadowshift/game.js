@@ -11,6 +11,8 @@ import { Hud } from './game/hud.js';
 import { Modal } from './game/modal.js';
 import { SettingsPanel } from './game/settingsPanel.js';
 import { PauseMenu } from './game/pauseMenu.js';
+import { GameOverScreen } from './game/gameOverScreen.js';
+import { Confetti } from './game/confetti.js';
 import { Sfx, Music } from './game/audio.js';
 import { settings, QUALITY_PRESETS } from './game/settings.js';
 
@@ -78,6 +80,60 @@ const pauseMenu = new PauseMenu({
   settingsBtnEl: document.getElementById('pause-settings-btn'),
 });
 
+const confetti = new Confetti(document.getElementById('confetti-canvas'));
+
+const gameOverScreen = new GameOverScreen({
+  panelEl: document.getElementById('game-over-screen'),
+  titleEl: document.getElementById('game-over-title'),
+  scoreEl: document.getElementById('go-score'),
+  highScoreEl: document.getElementById('go-highscore'),
+  distanceEl: document.getElementById('go-distance'),
+  coinsEl: document.getElementById('go-coins'),
+  highScoreBadgeEl: document.getElementById('game-over-highscore-badge'),
+  restartBtnEl: document.getElementById('go-restart-btn'),
+  mainMenuBtnEl: document.getElementById('go-mainmenu-btn'),
+  shareBtnEl: document.getElementById('go-share-btn'),
+  shareFeedbackEl: document.getElementById('go-share-feedback'),
+});
+
+gameOverScreen.setHandlers({
+  onRestart: () => {
+    gameOverScreen.hide();
+    confetti.clear();
+    playScene.restart();
+  },
+  onMainMenu: () => {
+    gameOverScreen.hide();
+    confetti.clear();
+    engine.scenes.switchTo('menu');
+  },
+  onShare: () => shareScore(playScene.scoreManager),
+});
+
+async function shareScore(scoreManager) {
+  const score = Math.floor(scoreManager.score);
+  const distance = Math.floor(scoreManager.distanceMeters);
+  const coins = scoreManager.coins;
+  const text = `I scored ${score} in ShadowShift! 🌗 ${distance}m traveled, ${coins} coins collected. Can you beat it?`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'ShadowShift', text, url: window.location.href });
+      return;
+    } catch {
+      // User cancelled the native share sheet, or it's unsupported for this
+      // payload — fall through to the clipboard fallback below.
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(`${text} ${window.location.href}`);
+    gameOverScreen.showShareFeedback('Copied to clipboard!');
+  } catch {
+    gameOverScreen.showShareFeedback('Could not copy — share manually.');
+  }
+}
+
 const playScene = new PlayScene({
   worldLabelEl: hudWorldEl,
   hud,
@@ -88,6 +144,10 @@ const playScene = new PlayScene({
     } else {
       pauseMenu.hide();
     }
+  },
+  onGameOver: (stats) => {
+    gameOverScreen.show(stats);
+    confetti.burst(stats.isNewHighScore ? 160 : 90);
   },
 });
 const switchButton = new WorldSwitchButton(switchButtonEl, () =>

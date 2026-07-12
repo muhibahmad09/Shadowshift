@@ -21,8 +21,17 @@ const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
 const COIN_SCORE_VALUE = 10;
 const COIN_PARTICLE_COLOR = '#fde68a';
 
+const GAME_OVER_CONFETTI_COLORS = ['#8b5cf6', '#c4b5fd', '#fbbf24', '#fde68a', '#f472b6'];
+
 export class PlayScene extends Scene {
-  constructor({ worldSwitchButton, worldLabelEl, hud, sfx, onPauseChange } = {}) {
+  constructor({
+    worldSwitchButton,
+    worldLabelEl,
+    hud,
+    sfx,
+    onPauseChange,
+    onGameOver,
+  } = {}) {
     super();
     this.player = new Player();
     this.world = new WorldManager('light');
@@ -36,6 +45,7 @@ export class PlayScene extends Scene {
     this.worldLabelEl = worldLabelEl ?? null;
     this.hud = hud ?? null;
     this._onPauseChange = onPauseChange ?? null;
+    this._onGameOver = onGameOver ?? null;
 
     this.width = 0;
     this.height = 0;
@@ -98,10 +108,13 @@ export class PlayScene extends Scene {
   update(deltaSeconds) {
     const { input } = this.engine;
 
+    // The Game Over overlay (DOM) owns navigation once a run ends — its
+    // Restart/Main Menu/Share buttons replace the old space-to-restart and
+    // Esc-to-menu shortcuts.
+    if (this.isGameOver) return;
+
     if (input.wasKeyPressed('Escape')) {
-      if (this.isGameOver) {
-        this.engine.scenes.switchTo('menu');
-      } else if (this.isPaused) {
+      if (this.isPaused) {
         this.resume();
       } else {
         this.pause();
@@ -112,13 +125,6 @@ export class PlayScene extends Scene {
     // Frozen completely: no physics, spawning, difficulty, or score
     // updates happen while paused. The last rendered frame just sits still.
     if (this.isPaused) return;
-
-    if (this.isGameOver) {
-      if (input.wasKeyPressed('Space') || input.wasPointerPressed()) {
-        this._startRun();
-      }
-      return;
-    }
 
     if (input.wasKeyPressed('Space') || input.wasPointerPressed()) {
       const wasGrounded = this.player.isGrounded;
@@ -206,6 +212,26 @@ export class PlayScene extends Scene {
     this.isGameOver = true;
     this.world.flashAlpha = 0.7;
     vibrate(HAPTICS.gameOver);
+    this._spawnGameOverConfetti();
+
+    this._onGameOver?.({
+      score: this.scoreManager.score,
+      highScore: this.scoreManager.highScore,
+      distanceMeters: this.scoreManager.distanceMeters,
+      coins: this.scoreManager.coins,
+      isNewHighScore: this.scoreManager.isNewHighScore,
+    });
+  }
+
+  /** A bigger, multi-colored burst than a coin pickup — the "impact" beat. */
+  _spawnGameOverConfetti() {
+    const { particleCount } = settings.qualityPreset;
+    const burstX = this.player.x;
+    const burstY = this.player.y + this.player.height / 2;
+
+    for (const color of GAME_OVER_CONFETTI_COLORS) {
+      this.particles.spawnBurst(burstX, burstY, color, Math.ceil(particleCount * 0.6));
+    }
   }
 
   _startRun() {
@@ -246,10 +272,6 @@ export class PlayScene extends Scene {
     this.particles.draw(ctx);
 
     this._drawFlash(ctx);
-
-    if (this.isGameOver) {
-      this._drawGameOver(ctx);
-    }
   }
 
   _drawBackground(ctx) {
@@ -301,57 +323,6 @@ export class PlayScene extends Scene {
     ctx.globalAlpha = this.world.flashAlpha;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, this.width, this.height);
-    ctx.restore();
-  }
-
-  _drawGameOver(ctx) {
-    const { scoreManager } = this;
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(5, 6, 10, 0.72)';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    const titleSize = Math.min(64, Math.max(32, this.width * 0.05));
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `700 ${titleSize}px Orbitron, Inter, system-ui, sans-serif`;
-    ctx.fillText(
-      'GAME OVER',
-      this.width / 2,
-      this.height / 2 - titleSize * 0.9,
-    );
-
-    const statsSize = Math.max(15, titleSize * 0.34);
-    ctx.font = `600 ${statsSize}px Inter, system-ui, sans-serif`;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
-    ctx.fillText(
-      `Score ${Math.floor(scoreManager.score)}   ·   Distance ${Math.floor(scoreManager.distanceMeters)} m   ·   Coins ${scoreManager.coins}`,
-      this.width / 2,
-      this.height / 2,
-    );
-
-    const bestSize = Math.max(14, titleSize * 0.3);
-    ctx.font = `700 ${bestSize}px Orbitron, Inter, system-ui, sans-serif`;
-    ctx.fillStyle = scoreManager.isNewHighScore ? '#fbbf24' : 'rgba(255, 255, 255, 0.65)';
-    ctx.fillText(
-      scoreManager.isNewHighScore
-        ? 'NEW HIGH SCORE!'
-        : `BEST ${Math.floor(scoreManager.highScore)}`,
-      this.width / 2,
-      this.height / 2 + statsSize * 1.6,
-    );
-
-    const subSize = Math.max(13, titleSize * 0.26);
-    ctx.font = `500 ${subSize}px Inter, system-ui, sans-serif`;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.fillText(
-      'Space or tap to restart   ·   Esc for menu',
-      this.width / 2,
-      this.height / 2 + statsSize * 3.1,
-    );
-
     ctx.restore();
   }
 

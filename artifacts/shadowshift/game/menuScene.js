@@ -7,8 +7,8 @@ import { Scene } from '../engine/scene.js';
 import { WORLDS } from './worldManager.js';
 import { lerpColor } from '../engine/colorUtils.js';
 import { getPersistedHighScore } from './scoreManager.js';
+import { settings } from './settings.js';
 
-const STAR_COUNT = 70;
 const PULSE_PERIOD_SECONDS = 7;
 
 function randomRange(min, max) {
@@ -25,6 +25,12 @@ export class MenuScene extends Scene {
     this.height = 0;
     this.stars = [];
     this._pulse = 0;
+
+    // Re-seed the starfield density immediately if Graphics Quality changes
+    // while the menu is visible, instead of waiting for the next resize.
+    settings.onChange(() => {
+      if (this.width > 0) this._seedStars();
+    });
   }
 
   onEnter() {
@@ -50,7 +56,8 @@ export class MenuScene extends Scene {
   }
 
   _seedStars() {
-    this.stars = Array.from({ length: STAR_COUNT }, () => ({
+    const starCount = settings.qualityPreset.starCount;
+    this.stars = Array.from({ length: starCount }, () => ({
       x: Math.random() * this.width,
       y: Math.random() * this.height,
       radius: randomRange(0.6, 2.2),

@@ -13,15 +13,16 @@ import { Difficulty } from './difficulty.js';
 import { rectsOverlap } from './collision.js';
 import { Sfx } from './audio.js';
 import { ScoreManager } from './scoreManager.js';
+import { settings } from './settings.js';
+import { vibrate, HAPTICS } from './vibration.js';
 
 const GROUND_MARGIN_RATIO = 0.22; // ground line sits this far up from the bottom
 const SPAWN_MARGIN_PX = 40; // spawn just past the right edge, off-screen
 const COIN_SCORE_VALUE = 10;
 const COIN_PARTICLE_COLOR = '#fde68a';
-const COIN_PARTICLE_COUNT = 12;
 
 export class PlayScene extends Scene {
-  constructor({ worldSwitchButton, worldLabelEl, hud, sfx } = {}) {
+  constructor({ worldSwitchButton, worldLabelEl, hud, sfx, onPauseChange } = {}) {
     super();
     this.player = new Player();
     this.world = new WorldManager('light');
@@ -34,11 +35,13 @@ export class PlayScene extends Scene {
     this.worldSwitchButton = worldSwitchButton ?? null;
     this.worldLabelEl = worldLabelEl ?? null;
     this.hud = hud ?? null;
+    this._onPauseChange = onPauseChange ?? null;
 
     this.width = 0;
     this.height = 0;
     this.groundY = 0;
     this.isGameOver = false;
+    this.isPaused = false;
   }
 
   onEnter() {
@@ -49,6 +52,29 @@ export class PlayScene extends Scene {
 
   onExit() {
     document.body.classList.remove('scene-play');
+    // Leaving the scene (e.g. "Main Menu" from the pause menu) must not
+    // leave a stale paused flag behind for the next run.
+    this.isPaused = false;
+  }
+
+  /** Freeze gameplay completely. No-op once game over or already paused. */
+  pause() {
+    if (this.isGameOver || this.isPaused) return;
+    this.isPaused = true;
+    this._onPauseChange?.(true);
+  }
+
+  /** Unfreeze gameplay. No-op if not currently paused. */
+  resume() {
+    if (!this.isPaused) return;
+    this.isPaused = false;
+    this._onPauseChange?.(false);
+  }
+
+  /** Start a brand-new run, resuming play immediately even if paused. */
+  restart() {
+    this._startRun();
+    this._onPauseChange?.(false);
   }
 
   onResize(width, height) {
@@ -61,10 +87,11 @@ export class PlayScene extends Scene {
 
   /** Called by the keyboard handler and the on-screen button alike. */
   requestWorldSwitch() {
-    if (this.isGameOver) return;
+    if (this.isGameOver || this.isPaused) return;
     const accepted = this.world.requestSwitch();
     if (accepted) {
       this._syncWorldChrome();
+      vibrate(HAPTICS.worldSwitch);
     }
   }
 
@@ -72,9 +99,19 @@ export class PlayScene extends Scene {
     const { input } = this.engine;
 
     if (input.wasKeyPressed('Escape')) {
-      this.engine.scenes.switchTo('menu');
+      if (this.isGameOver) {
+        this.engine.scenes.switchTo('menu');
+      } else if (this.isPaused) {
+        this.resume();
+      } else {
+        this.pause();
+      }
       return;
     }
+
+    // Frozen completely: no physics, spawning, difficulty, or score
+    // updates happen while paused. The last rendered frame just sits still.
+    if (this.isPaused) return;
 
     if (this.isGameOver) {
       if (input.wasKeyPressed('Space') || input.wasPointerPressed()) {
@@ -84,7 +121,9 @@ export class PlayScene extends Scene {
     }
 
     if (input.wasKeyPressed('Space') || input.wasPointerPressed()) {
+      const wasGrounded = this.player.isGrounded;
       this.player.jump();
+      if (wasGrounded) vibrate(HAPTICS.jump);
     }
 
     if (input.wasKeyPressed('KeyW')) {
@@ -141,9 +180,10 @@ export class PlayScene extends Scene {
         coin.x,
         coin.y,
         COIN_PARTICLE_COLOR,
-        COIN_PARTICLE_COUNT,
+        settings.qualityPreset.particleCount,
       );
       this.sfx.playCoin();
+      vibrate(HAPTICS.coinPickup);
     });
   }
 
@@ -165,6 +205,7 @@ export class PlayScene extends Scene {
   _triggerGameOver() {
     this.isGameOver = true;
     this.world.flashAlpha = 0.7;
+    vibrate(HAPTICS.gameOver);
   }
 
   _startRun() {
@@ -184,16 +225,23 @@ export class PlayScene extends Scene {
   }
 
   render(ctx) {
+    const { glowBlur } = settings.qualityPreset;
+
     this._drawBackground(ctx);
     this._drawGround(ctx);
 
-    this.coinSpawner.forEachActive((coin) => coin.draw(ctx));
+    this.coinSpawner.forEachActive((coin) => coin.draw(ctx, glowBlur));
 
     this.spawner.forEachActive((obstacle) =>
-      obstacle.draw(ctx, this.world.current.id),
+      obstacle.draw(ctx, this.world.current.id, glowBlur),
     );
 
-    this.player.draw(ctx, this.world.glowPulse, this.world.current.accent);
+    this.player.draw(
+      ctx,
+      this.world.glowPulse,
+      this.world.current.accent,
+      glowBlur,
+    );
 
     this.particles.draw(ctx);
 

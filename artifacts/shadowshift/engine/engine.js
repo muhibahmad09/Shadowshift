@@ -66,6 +66,13 @@ export class Engine {
     }
   }
 
+  /** Change the device-pixel-ratio cap at runtime (e.g. Graphics Quality) and re-apply it. */
+  setMaxDpr(maxDpr) {
+    if (this.maxDpr === maxDpr) return;
+    this.maxDpr = maxDpr;
+    this._resizeToWindow();
+  }
+
   /** Tear down all listeners. Call if the engine instance is discarded. */
   destroy() {
     this.stop();

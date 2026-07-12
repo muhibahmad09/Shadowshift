@@ -77,3 +77,80 @@ export class Sfx {
     oscillator.stop(now + 0.2);
   }
 }
+
+// A soft, slowly-drifting three-note pad loop, synthesized rather than
+// loaded from a sound asset (same placeholder approach as Sfx.playCoin) —
+// swap for a real ambient track whenever one is available.
+const PAD_NOTES_HZ = [174.61, 220, 261.63]; // F3, A3, C4
+const PAD_LFO_HZ = 0.05;
+
+export class Music {
+  constructor() {
+    this._ctx = null;
+    this._nodes = null;
+  }
+
+  get isPlaying() {
+    return this._nodes !== null;
+  }
+
+  _ensureContext() {
+    if (this._ctx) {
+      if (this._ctx.state === 'suspended') this._ctx.resume();
+      return this._ctx;
+    }
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+
+    this._ctx = new AudioContextClass();
+    return this._ctx;
+  }
+
+  /** Start the ambient loop. No-op if it's already playing or audio is unavailable. */
+  start() {
+    if (this.isPlaying) return;
+
+    const ctx = this._ensureContext();
+    if (!ctx) return;
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.05; // deliberately subtle — background ambience only
+    masterGain.connect(ctx.destination);
+
+    const oscillators = PAD_NOTES_HZ.map((freq) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      const voiceGain = ctx.createGain();
+      voiceGain.gain.value = 1 / PAD_NOTES_HZ.length;
+
+      osc.connect(voiceGain).connect(masterGain);
+      osc.start();
+      return osc;
+    });
+
+    // Slow LFO breathing on the master gain so the pad isn't static.
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = PAD_LFO_HZ;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.02;
+    lfo.connect(lfoGain).connect(masterGain.gain);
+    lfo.start();
+
+    this._nodes = { masterGain, oscillators, lfo };
+  }
+
+  /** Stop and tear down the ambient loop. Safe to call when already stopped. */
+  stop() {
+    if (!this._nodes) return;
+
+    const { masterGain, oscillators, lfo } = this._nodes;
+    for (const osc of oscillators) osc.stop();
+    lfo.stop();
+    masterGain.disconnect();
+
+    this._nodes = null;
+  }
+}

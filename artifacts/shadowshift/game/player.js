@@ -92,7 +92,7 @@ export class Player {
    * @param {number} switchGlow 0-1 intensity of the world-switch halo.
    * @param {string} glowColor CSS color for the halo while switching.
    */
-  draw(ctx, switchGlow = 0, glowColor = '#ffffff') {
+  draw(ctx, switchGlow = 0, glowColor = '#ffffff', glowBlur = 18) {
     const centerX = this.x;
     const topY = this.y;
     const bodyBottomY = topY + this.height - LEG_LENGTH;
@@ -106,7 +106,7 @@ export class Player {
     }
 
     this._drawLegs(ctx, bodyBottomY);
-    this._drawBody(ctx, topY, bodyBottomY);
+    this._drawBody(ctx, topY, bodyBottomY, glowBlur);
 
     ctx.restore();
   }
@@ -156,13 +156,13 @@ export class Player {
     ctx.stroke();
   }
 
-  _drawBody(ctx, topY, bottomY) {
+  _drawBody(ctx, topY, bottomY, glowBlur = 18) {
     const bodyHeight = bottomY - topY;
     const radius = this.width / 2;
 
     // Soft glow behind the silhouette so it reads against the dark backdrop.
     ctx.shadowColor = 'rgba(139, 92, 246, 0.65)';
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = glowBlur;
 
     ctx.fillStyle = '#c4b5fd';
     ctx.beginPath();

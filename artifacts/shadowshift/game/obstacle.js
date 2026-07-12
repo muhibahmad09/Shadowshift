@@ -52,7 +52,7 @@ export class Obstacle {
    * faint outlines — visible for planning ahead, but visually "not real"
    * since they can't collide right now.
    */
-  draw(ctx, activeWorldId) {
+  draw(ctx, activeWorldId, glowBlur = 16) {
     const palette = WORLDS[this.world];
     const isSolidNow = this.world === activeWorldId;
 
@@ -62,7 +62,7 @@ export class Obstacle {
     if (isSolidNow) {
       ctx.globalAlpha = 1;
       ctx.shadowColor = palette.accent;
-      ctx.shadowBlur = 16;
+      ctx.shadowBlur = glowBlur;
       ctx.fillStyle = palette.accent;
       ctx.fill();
     } else {

@@ -52,6 +52,10 @@
       <span class="switch-world-label">SWITCH<br />WORLD</span>
     </button>
 
+    <button id="pause-btn" type="button" aria-label="Pause (Esc)">
+      <span class="pause-icon"></span>
+    </button>
+
     <div id="main-menu">
       <div class="menu-logo">
         <span class="menu-logo-text">SHADOWSHIFT</span>
@@ -71,11 +75,74 @@
       </nav>
     </div>
 
+    <div id="pause-menu">
+      <div class="pause-card">
+        <h2 class="pause-title">Paused</h2>
+        <nav class="pause-actions">
+          <button type="button" class="menu-btn menu-btn-primary" id="pause-resume-btn">Resume</button>
+          <button type="button" class="menu-btn" id="pause-restart-btn">Restart</button>
+          <button type="button" class="menu-btn" id="pause-settings-btn">Settings</button>
+          <button type="button" class="menu-btn menu-btn-danger" id="pause-mainmenu-btn">Main Menu</button>
+        </nav>
+      </div>
+    </div>
+
     <div id="modal-overlay">
       <div class="modal-panel">
         <h2 class="modal-title" id="modal-title"></h2>
         <p class="modal-body" id="modal-body"></p>
         <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>
+
+    <div id="settings-panel">
+      <div class="settings-card">
+        <div class="settings-header">
+          <h2 class="settings-title">Settings</h2>
+          <button type="button" class="settings-close" id="settings-close-btn" aria-label="Close settings">&times;</button>
+        </div>
+
+        <div class="settings-row">
+          <span class="settings-label">Music</span>
+          <button type="button" class="toggle-switch" id="toggle-music" role="switch" aria-checked="true">
+            <span class="toggle-knob"></span>
+          </button>
+        </div>
+
+        <div class="settings-row">
+          <span class="settings-label">Sound</span>
+          <button type="button" class="toggle-switch" id="toggle-sound" role="switch" aria-checked="true">
+            <span class="toggle-knob"></span>
+          </button>
+        </div>
+
+        <div class="settings-row">
+          <span class="settings-label">Vibration</span>
+          <button type="button" class="toggle-switch" id="toggle-vibration" role="switch" aria-checked="true">
+            <span class="toggle-knob"></span>
+          </button>
+        </div>
+
+        <div class="settings-row settings-row-column">
+          <span class="settings-label">Graphics Quality</span>
+          <div class="quality-options" id="quality-options">
+            <button type="button" class="quality-btn" data-quality="low">Low</button>
+            <button type="button" class="quality-btn" data-quality="medium">Medium</button>
+            <button type="button" class="quality-btn" data-quality="high">High</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <span class="settings-label">FPS</span>
+          <span class="settings-fps" id="settings-fps">0</span>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-row settings-row-column">
+          <button type="button" class="danger-btn" id="reset-save-btn">Reset Save Data</button>
+          <p class="settings-hint" id="reset-hint">Clears your saved high score. This can't be undone.</p>
+        </div>
       </div>
     </div>
 

@@ -48,12 +48,12 @@ export class Coin {
     };
   }
 
-  draw(ctx) {
+  draw(ctx, glowBlur = 18) {
     const y = this.y;
 
     ctx.save();
     ctx.shadowColor = 'rgba(251, 191, 36, 0.85)';
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = glowBlur;
 
     const gradient = ctx.createRadialGradient(
       this.x,

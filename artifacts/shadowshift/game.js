@@ -29,6 +29,9 @@ import { MissionsPanel } from './game/missionsPanel.js';
 import { achievementStore } from './game/achievementStore.js';
 import { AchievementsPanel } from './game/achievementsPanel.js';
 import { AchievementToast } from './game/achievementToast.js';
+import { playerIdentity } from './game/playerIdentity.js';
+import { registerPlayer, submitScore } from './game/leaderboardClient.js';
+import { LeaderboardPanel } from './game/leaderboardPanel.js';
 
 // Apply the persisted Color Theme (or the Classic default) before the menu
 // and play scenes render their first frame.
@@ -184,8 +187,10 @@ const playScene = new PlayScene({
     }
   },
   onGameOver: (stats) => {
+    goRankRowEl.hidden = true; // reset from previous run
     gameOverScreen.show(stats);
     confetti.burst(stats.isNewHighScore ? 160 : 90);
+    submitRunToLeaderboard(stats);
   },
 });
 
@@ -303,6 +308,65 @@ const achievementsPanel = new AchievementsPanel({
 document.getElementById('menu-achievements-btn').addEventListener('click', () => {
   achievementsPanel.show();
 });
+
+// ── Leaderboard ────────────────────────────────────────────────────────────
+
+const goRankRowEl = document.getElementById('go-rank-row');
+const goRankEl = document.getElementById('go-rank');
+
+const leaderboardPanel = new LeaderboardPanel({
+  panelEl: document.getElementById('leaderboard-panel'),
+  closeBtnEl: document.getElementById('lb-close-btn'),
+  tabsEl: document.getElementById('lb-tabs'),
+  bodyEl: document.getElementById('lb-body'),
+  selfRankEl: document.getElementById('lb-self-rank'),
+  selfRankValueEl: document.getElementById('lb-self-rank-value'),
+  selfRankScoreEl: document.getElementById('lb-self-rank-score'),
+  friendsFooterEl: document.getElementById('lb-friends-footer'),
+  friendInputEl: document.getElementById('lb-friend-input'),
+  addFriendBtnEl: document.getElementById('lb-add-friend-btn'),
+  ownCodeEl: document.getElementById('lb-own-code-val'),
+  copyCodeBtnEl: document.getElementById('lb-copy-code-btn'),
+  nameSetupEl: document.getElementById('lb-name-setup'),
+  nameInputEl: document.getElementById('lb-name-input'),
+  nameSaveBtnEl: document.getElementById('lb-name-save-btn'),
+});
+
+document.getElementById('menu-leaderboard-btn').addEventListener('click', () => {
+  leaderboardPanel.show();
+});
+
+/**
+ * Silently register the player (using their multiplayer name if set, or a
+ * generated guest name) then submit the run score and update the game-over
+ * rank display. Never throws — leaderboard is a nice-to-have.
+ */
+async function submitRunToLeaderboard(stats) {
+  try {
+    // Register if needed, falling back to the multiplayer saved name
+    if (!playerIdentity.isRegistered()) {
+      const savedMpName = localStorage.getItem('shadowshift_mp_name');
+      const { generateGuestName } = await import('./game/playerIdentity.js');
+      const name = savedMpName || generateGuestName();
+      const data = await registerPlayer(playerIdentity.token, name);
+      playerIdentity.set(data);
+    }
+
+    const { globalRank } = await submitScore({
+      token: playerIdentity.token,
+      score: Math.floor(stats.score),
+      distanceMeters: stats.distanceMeters,
+      coins: stats.coins,
+    });
+
+    if (globalRank) {
+      goRankEl.textContent = `#${globalRank}`;
+      goRankRowEl.hidden = false;
+    }
+  } catch {
+    // silently ignore — leaderboard is optional
+  }
+}
 
 const achievementToast = new AchievementToast({
   containerEl: document.getElementById('achievement-toast-container'),

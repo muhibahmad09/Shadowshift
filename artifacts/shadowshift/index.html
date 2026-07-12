@@ -82,6 +82,7 @@
           <span class="menu-btn-dot" id="menu-missions-dot" hidden></span>
         </button>
         <button type="button" class="menu-btn" id="menu-achievements-btn">Achievements</button>
+        <button type="button" class="menu-btn" id="menu-leaderboard-btn">Leaderboard</button>
         <button type="button" class="menu-btn" id="menu-settings-btn">Settings</button>
         <button type="button" class="menu-btn menu-btn-danger" id="menu-exit-btn">Exit</button>
       </nav>
@@ -122,6 +123,10 @@
           <div class="go-stat">
             <span class="go-stat-label">Coins Collected</span>
             <span class="go-stat-value" id="go-coins">0</span>
+          </div>
+          <div class="go-stat go-stat-rank" id="go-rank-row" hidden>
+            <span class="go-stat-label">Global Rank</span>
+            <span class="go-stat-value" id="go-rank">—</span>
           </div>
         </div>
 
@@ -197,6 +202,55 @@
         </div>
 
         <div class="achievement-grid" id="achievements-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── Leaderboard panel ─────────────────────────────────────────────── -->
+    <div id="leaderboard-panel">
+      <div class="lb-card">
+        <div class="lb-header">
+          <h2 class="lb-title">Leaderboard</h2>
+          <button type="button" class="lb-close" id="lb-close-btn" aria-label="Close leaderboard">&times;</button>
+        </div>
+
+        <!-- Name setup (shown for new players) -->
+        <div class="lb-name-setup" id="lb-name-setup" hidden>
+          <p class="lb-name-hint">Choose your display name to appear on the leaderboard</p>
+          <div class="lb-name-row">
+            <input class="lb-name-input" id="lb-name-input" placeholder="Your name" maxlength="32" autocomplete="off" />
+            <button type="button" class="menu-btn menu-btn-primary lb-name-save-btn" id="lb-name-save-btn">Join</button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="lb-tabs" id="lb-tabs">
+          <button type="button" class="lb-tab is-active" data-tab="global">Global</button>
+          <button type="button" class="lb-tab" data-tab="weekly">Weekly</button>
+          <button type="button" class="lb-tab" data-tab="friends">Friends</button>
+        </div>
+
+        <!-- Board body -->
+        <div class="lb-body" id="lb-body"></div>
+
+        <!-- Self rank strip -->
+        <div class="lb-self-rank" id="lb-self-rank" hidden>
+          <span class="lb-self-rank-label">Your Rank</span>
+          <span class="lb-self-rank-value" id="lb-self-rank-value">#—</span>
+          <span class="lb-self-rank-score" id="lb-self-rank-score"></span>
+        </div>
+
+        <!-- Friends tab footer -->
+        <div class="lb-friends-footer" id="lb-friends-footer" hidden>
+          <div class="lb-own-code-row">
+            <span class="lb-own-code-label">Your code:</span>
+            <span class="lb-own-code-val" id="lb-own-code-val">—</span>
+            <button type="button" class="lb-copy-code-btn" id="lb-copy-code-btn" title="Copy code">📋</button>
+          </div>
+          <div class="lb-add-friend-row">
+            <input class="lb-friend-input" id="lb-friend-input" placeholder="Enter friend code" maxlength="6" autocomplete="off" />
+            <button type="button" class="menu-btn lb-add-btn" id="lb-add-friend-btn">Add</button>
+          </div>
+        </div>
       </div>
     </div>
 

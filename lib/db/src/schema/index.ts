@@ -1,20 +1,21 @@
-// Export your models here. Add one export per file
-// export * from "./posts";
-//
-// Each model/table should ideally be split into different files.
-// Each model/table should define a Drizzle table, insert schema, and types:
-//
-//   import { pgTable, text, serial } from "drizzle-orm/pg-core";
-//   import { createInsertSchema } from "drizzle-zod";
-//   import { z } from "zod/v4";
-//
-//   export const postsTable = pgTable("posts", {
-//     id: serial("id").primaryKey(),
-//     title: text("title").notNull(),
-//   });
-//
-//   export const insertPostSchema = createInsertSchema(postsTable).omit({ id: true });
-//   export type InsertPost = z.infer<typeof insertPostSchema>;
-//   export type Post = typeof postsTable.$inferSelect;
+import { pgTable, serial, text, integer, real, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
-export {}
+export const playersTable = pgTable("players", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  token: uuid("token").notNull().unique().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(), // 6-char friend code
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const scoresTable = pgTable("scores", {
+  id: serial("id").primaryKey(),
+  playerId: integer("player_id")
+    .notNull()
+    .references(() => playersTable.id, { onDelete: "cascade" }),
+  score: integer("score").notNull(),
+  distanceMeters: real("distance_meters").notNull().default(0),
+  coins: integer("coins").notNull().default(0),
+  playedAt: timestamp("played_at").notNull().defaultNow(),
+});
